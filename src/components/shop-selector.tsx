@@ -2,11 +2,11 @@
 
 import * as React from 'react'
 import { Check, ChevronDown, Store } from 'lucide-react'
-import { useShops } from '@/hooks/use-shops'
-import { useAppStore } from '@/lib/store'
-import { cn } from '@/lib/utils'
+import { useShops } from '../hooks/use-shops'
+import { useAppStore } from '../lib/store'
+import { cn } from '../lib/utils'
 
-import { Button } from '@/components/ui/button'
+import { Button } from './ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from './ui/dropdown-menu'
 
 export function ShopSelector() {
   const { shops } = useShops()

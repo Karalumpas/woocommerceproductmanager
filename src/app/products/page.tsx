@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Plus, Upload, Download, Filter, Grid, List } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
@@ -42,8 +42,23 @@ export default function ProductsPage() {
   const [showExport, setShowExport] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   
-  const { selectedShop } = useAppStore()
+  const { selectedShop, setSelectedShop } = useAppStore()
   const { products, isLoading, error, mutate } = useProducts(searchTerm)
+
+  // Auto-select first shop if none selected
+  useEffect(() => {
+    if (!selectedShop) {
+      fetch('/api/shops')
+        .then(res => res.json())
+        .then(shops => {
+          if (shops && shops.length > 0) {
+            console.log('Auto-selecting shop:', shops[0].name)
+            setSelectedShop(shops[0])
+          }
+        })
+        .catch(console.error)
+    }
+  }, [selectedShop, setSelectedShop])
 
   if (!selectedShop) {
     return (

@@ -1,6 +1,6 @@
 import useSWR from 'swr'
 import { useState } from 'react'
-import type { Shop, NewShop } from '@/lib/db/schema'
+import type { Shop, NewShop } from '../lib/db/schema'
 
 const API_BASE = '/api/shops'
 
