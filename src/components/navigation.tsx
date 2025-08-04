@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/lib/store'
 import { Cable, BarChart3, Package } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
+import { ShopSelector } from '@/components/shop-selector'
 
 const navigation = [
   {
@@ -74,20 +76,10 @@ export function Navigation() {
         </nav>
         
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          {selectedShop && (
-            <div className="flex items-center space-x-2 text-sm">
-              <div className="hidden md:block">
-                <span className="text-muted-foreground">Connected to:</span>
-                <span className="ml-1 font-medium">{selectedShop.name}</span>
-              </div>
-              <div className={cn(
-                'h-2 w-2 rounded-full',
-                selectedShop.status === 'online' ? 'bg-green-500' :
-                selectedShop.status === 'offline' ? 'bg-red-500' :
-                'bg-yellow-500'
-              )} />
-            </div>
-          )}
+          <div className="flex items-center space-x-2">
+            <ShopSelector />
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </header>
