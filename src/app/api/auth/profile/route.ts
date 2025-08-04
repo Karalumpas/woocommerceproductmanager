@@ -11,7 +11,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { email, username } = await request.json()
+    const { email, username, autoSync } = await request.json()
 
     if (!email || !username) {
       return NextResponse.json({ error: 'Email and username are required' }, { status: 400 })
@@ -44,6 +44,7 @@ export async function PUT(request: NextRequest) {
       .set({
         email,
         username,
+        autoSync: autoSync || false,
         updatedAt: new Date()
       })
       .where(eq(users.id, user.id))

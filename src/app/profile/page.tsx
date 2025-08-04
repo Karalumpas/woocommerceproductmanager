@@ -41,6 +41,8 @@ export default function ProfilePage() {
         email: user.email,
         username: user.username,
       })
+      // Load autoSync setting from user profile
+      setAutoSync(user.autoSync || false)
     }
   }, [user, isLoading, router])
 
@@ -52,7 +54,10 @@ export default function ProfilePage() {
       const response = await fetch('/api/auth/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profileData),
+        body: JSON.stringify({
+          ...profileData,
+          autoSync
+        }),
       })
 
       if (response.ok) {

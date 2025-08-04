@@ -8,6 +8,7 @@ import { Label } from '../ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { useToast } from '../../hooks/use-toast'
+import { useAuth } from './auth-provider'
 import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react'
 
 interface AuthFormProps {
@@ -29,6 +30,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
   })
   
   const { toast } = useToast()
+  const { login } = useAuth()
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -44,6 +46,10 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
 
       if (response.ok) {
         const data = await response.json()
+        
+        // Update AuthProvider state
+        login(data.user)
+        
         toast({
           title: "Welcome back!",
           description: `Successfully logged in as ${data.user.username}`,
