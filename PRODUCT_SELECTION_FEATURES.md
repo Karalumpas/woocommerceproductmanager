@@ -82,6 +82,8 @@ Denne implementering tilføjer omfattende funktionalitet til produktlisten for a
 - Fallback til lokal opdatering hvis WooCommerce API fejler
 - Toast notifikationer for bruger feedback
 - Console logging for debugging
+- **Numerisk felt validering**: Tomme strenge konverteres automatisk til null for numeriske felter som priser og lagerantal
+- **Database compatibility**: Sikrer kompatibilitet mellem WooCommerce API response og PostgreSQL database
 
 ## Tekniske Detaljer
 
@@ -102,3 +104,25 @@ Denne implementering tilføjer omfattende funktionalitet til produktlisten for a
 - Consistent styling med eksisterende UI komponenter
 
 Denne implementering giver en komplet løsning til produktadministration på tværs af flere WooCommerce webshops med robust fejlhåndtering og en intuitiv brugeroplevelse.
+
+## Troubleshooting
+
+### Almindelige Fejl og Løsninger
+
+#### "invalid input syntax for type numeric" fejl
+**Problem**: PostgreSQL modtager tomme strenge ("") til numeriske felter som priser eller lagerantal.
+**Løsning**: Implementeret automatisk konvertering af tomme strenge til null værdier i API endpoints.
+
+#### Produktopdatering fejler
+**Problem**: WooCommerce API forbindelse fejler eller returnerer ugyldige data.
+**Løsning**: Fallback til kun lokal database opdatering. Tjek shop forbindelses indstillinger.
+
+#### Produkter dubleres ved transfer
+**Problem**: Samme produkt oprettes flere gange i målwebshoppen.
+**Løsning**: Systemet tjekker automatisk for eksisterende produkter via SKU før oprettelse.
+
+### Debug Tips
+1. Tjek browser console for JavaScript fejl
+2. Tjek server terminal for API fejl
+3. Verificer shop forbindelser på shop siden
+4. Test WooCommerce API adgang separat

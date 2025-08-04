@@ -43,9 +43,9 @@ export async function PUT(
             description: updateData.description,
             short_description: updateData.shortDescription,
             sku: updateData.sku,
-            regular_price: updateData.regularPrice,
-            sale_price: updateData.salePrice,
-            stock_quantity: updateData.stockQuantity,
+            regular_price: updateData.regularPrice || '',
+            sale_price: updateData.salePrice || '',
+            stock_quantity: updateData.stockQuantity || null,
             stock_status: updateData.stockStatus,
             status: updateData.status,
             type: updateData.type,
@@ -65,9 +65,9 @@ export async function PUT(
               description: updatedWooProduct.description,
               shortDescription: updatedWooProduct.short_description,
               sku: updatedWooProduct.sku,
-              regularPrice: updatedWooProduct.regular_price,
-              salePrice: updatedWooProduct.sale_price,
-              stockQuantity: updatedWooProduct.stock_quantity,
+              regularPrice: updatedWooProduct.regular_price || null,
+              salePrice: updatedWooProduct.sale_price || null,
+              stockQuantity: updatedWooProduct.stock_quantity || null,
               stockStatus: updatedWooProduct.stock_status,
               status: updatedWooProduct.status,
               type: updatedWooProduct.type,
@@ -90,6 +90,22 @@ export async function PUT(
       }
     }
 
+    // Helper function to convert empty strings to null for numeric fields
+    const parseNumericField = (value: any): number | null => {
+      if (value === '' || value === undefined || value === null) {
+        return null
+      }
+      const parsed = parseFloat(value)
+      return isNaN(parsed) ? null : parsed
+    }
+
+    const parseStringField = (value: any): string | null => {
+      if (value === '' || value === undefined || value === null) {
+        return null
+      }
+      return String(value)
+    }
+
     // Update only in local database (for CSV products or when WooCommerce update fails)
     await db
       .update(products)
@@ -98,9 +114,9 @@ export async function PUT(
         description: updateData.description,
         shortDescription: updateData.shortDescription,
         sku: updateData.sku,
-        regularPrice: updateData.regularPrice,
-        salePrice: updateData.salePrice,
-        stockQuantity: updateData.stockQuantity,
+        regularPrice: parseStringField(updateData.regularPrice),
+        salePrice: parseStringField(updateData.salePrice),
+        stockQuantity: parseNumericField(updateData.stockQuantity),
         stockStatus: updateData.stockStatus,
         status: updateData.status,
         type: updateData.type,
