@@ -10,6 +10,7 @@ import { ImportProducts } from '../../components/products/import-products'
 import { ExportProducts } from '../../components/products/export-products'
 import { CreateProduct } from '../../components/products/create-product'
 import { SyncProgress } from '../../components/products/sync-progress'
+import { ProductFilters } from '../../components/products/product-filters'
 import { useProducts } from '../../lib/hooks/use-products'
 import { useAppStore } from '../../lib/store'
 import { Toaster } from '../../components/ui/toaster'
@@ -34,6 +35,16 @@ interface Product {
   dateModified: string
 }
 
+interface ProductFilters {
+  category?: string
+  brand?: string
+  status?: string
+  stockStatus?: string
+  type?: string
+  sortBy?: 'name' | 'price' | 'dateCreated' | 'dateModified' | 'sku'
+  sortOrder?: 'asc' | 'desc'
+}
+
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
@@ -41,9 +52,16 @@ export default function ProductsPage() {
   const [showImport, setShowImport] = useState(false)
   const [showExport, setShowExport] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
+  const [paginationMode, setPaginationMode] = useState<'pagination' | 'loadmore'>('pagination')
+  const [filters, setFilters] = useState<ProductFilters>({
+    sortBy: 'dateModified',
+    sortOrder: 'desc'
+  })
+  const [categories, setCategories] = useState<string[]>([])
+  const [brands, setBrands] = useState<string[]>([])
   
   const { selectedShop, setSelectedShop } = useAppStore()
-  const { products, isLoading, error, mutate } = useProducts(searchTerm)
+  const { products, isLoading, error, currentPage, totalPages, total, hasMore, goToPage, loadMore, mutate } = useProducts(searchTerm, 25, filters)
 
   // Auto-select first shop if none selected
   useEffect(() => {
@@ -59,6 +77,19 @@ export default function ProductsPage() {
         .catch(console.error)
     }
   }, [selectedShop, setSelectedShop])
+
+  // Fetch filter options when shop is selected
+  useEffect(() => {
+    if (selectedShop) {
+      fetch(`/api/products/filters?shopId=${selectedShop.id}`)
+        .then(res => res.json())
+        .then(data => {
+          setCategories(data.categories || [])
+          setBrands(data.brands || [])
+        })
+        .catch(console.error)
+    }
+  }, [selectedShop])
 
   if (!selectedShop) {
     return (
@@ -134,10 +165,32 @@ export default function ProductsPage() {
         </div>
         
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
-          </Button>
+          <ProductFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            categories={categories}
+            brands={brands}
+          />
+
+          {/* Pagination Mode Toggle */}
+          <div className="flex border rounded-md">
+            <Button
+              variant={paginationMode === 'pagination' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setPaginationMode('pagination')}
+              className="rounded-r-none text-xs"
+            >
+              Pages
+            </Button>
+            <Button
+              variant={paginationMode === 'loadmore' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setPaginationMode('loadmore')}
+              className="rounded-l-none text-xs"
+            >
+              Load More
+            </Button>
+          </div>
           
           {/* View Mode Toggle */}
           <div className="flex border rounded-md">
@@ -168,6 +221,13 @@ export default function ProductsPage() {
         error={error}
         viewMode={viewMode}
         onProductSelect={setSelectedProduct}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        total={total}
+        onPageChange={paginationMode === 'pagination' ? goToPage : undefined}
+        showLoadMore={paginationMode === 'loadmore'}
+        hasMore={hasMore}
+        onLoadMore={loadMore}
       />
 
       {/* Product Detail Modal */}

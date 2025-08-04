@@ -5,6 +5,7 @@ import { ProductCard } from './product-card'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { Card, CardContent } from '../ui/card'
+import { Pagination } from '../ui/pagination'
 import { 
   Package, 
   Edit2, 
@@ -46,9 +47,29 @@ interface ProductListProps {
   error: any
   viewMode: 'grid' | 'list'
   onProductSelect: (product: Product) => void
+  currentPage?: number
+  totalPages?: number
+  total?: number
+  onPageChange?: (page: number) => void
+  showLoadMore?: boolean
+  hasMore?: boolean
+  onLoadMore?: () => void
 }
 
-export function ProductList({ products, isLoading, error, viewMode, onProductSelect }: ProductListProps) {
+export function ProductList({ 
+  products, 
+  isLoading, 
+  error, 
+  viewMode, 
+  onProductSelect,
+  currentPage = 1,
+  totalPages = 1,
+  total = 0,
+  onPageChange,
+  showLoadMore = false,
+  hasMore = false,
+  onLoadMore
+}: ProductListProps) {
   if (isLoading && products.length === 0) {
     return (
       <div className="grid grid-cols-1 gap-4">
@@ -100,27 +121,81 @@ export function ProductList({ products, isLoading, error, viewMode, onProductSel
 
   if (viewMode === 'grid') {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="space-y-6">
+        {/* Products Stats */}
+        {total > 0 && (
+          <div className="text-sm text-gray-600">
+            Showing {products.length} of {total} products
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {products.map((product) => (
+            <ProductGridItem 
+              key={product.id} 
+              product={product} 
+              onSelect={() => onProductSelect(product)}
+            />
+          ))}
+        </div>
+
+        {/* Load More Button for infinite scroll mode */}
+        {showLoadMore && hasMore && onLoadMore && (
+          <div className="flex justify-center">
+            <Button onClick={onLoadMore} variant="outline">
+              Load More Products
+            </Button>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {onPageChange && totalPages > 1 && !showLoadMore && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+          />
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Products Stats */}
+      {total > 0 && (
+        <div className="text-sm text-gray-600">
+          Showing {products.length} of {total} products
+        </div>
+      )}
+
+      <div className="space-y-2">
         {products.map((product) => (
-          <ProductGridItem 
+          <ProductListItem 
             key={product.id} 
             product={product} 
             onSelect={() => onProductSelect(product)}
           />
         ))}
       </div>
-    )
-  }
 
-  return (
-    <div className="space-y-2">
-      {products.map((product) => (
-        <ProductListItem 
-          key={product.id} 
-          product={product} 
-          onSelect={() => onProductSelect(product)}
+      {/* Load More Button for infinite scroll mode */}
+      {showLoadMore && hasMore && onLoadMore && (
+        <div className="flex justify-center">
+          <Button onClick={onLoadMore} variant="outline">
+            Load More Products
+          </Button>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {onPageChange && totalPages > 1 && !showLoadMore && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
         />
-      ))}
+      )}
     </div>
   )
 }

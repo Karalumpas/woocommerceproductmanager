@@ -32,15 +32,29 @@ interface ProductsResponse {
   products: Product[]
   total: number
   hasMore: boolean
+  totalPages: number
+  currentPage: number
+}
+
+interface ProductFilters {
+  category?: string
+  brand?: string
+  status?: string
+  stockStatus?: string
+  type?: string
+  sortBy?: 'name' | 'price' | 'dateCreated' | 'dateModified' | 'sku'
+  sortOrder?: 'asc' | 'desc'
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
-export function useProducts(search: string = '', limit: number = 25) {
+export function useProducts(search: string = '', limit: number = 25, filters: ProductFilters = {}) {
   const { selectedShop } = useAppStore()
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
+  const [totalPages, setTotalPages] = useState(1)
+  const [total, setTotal] = useState(0)
 
   const buildUrl = (pageNum: number) => {
     if (!selectedShop) return null
@@ -53,6 +67,29 @@ export function useProducts(search: string = '', limit: number = 25) {
     
     if (search) {
       params.append('search', search)
+    }
+
+    // Add filter parameters
+    if (filters.category) {
+      params.append('category', filters.category)
+    }
+    if (filters.brand) {
+      params.append('brand', filters.brand)
+    }
+    if (filters.status) {
+      params.append('status', filters.status)
+    }
+    if (filters.stockStatus) {
+      params.append('stockStatus', filters.stockStatus)
+    }
+    if (filters.type) {
+      params.append('type', filters.type)
+    }
+    if (filters.sortBy) {
+      params.append('sortBy', filters.sortBy)
+    }
+    if (filters.sortOrder) {
+      params.append('sortOrder', filters.sortOrder)
     }
     
     return `/api/products?${params.toString()}`
@@ -67,12 +104,12 @@ export function useProducts(search: string = '', limit: number = 25) {
     }
   )
 
-  // Reset when search changes
+  // Reset when search or filters change
   useEffect(() => {
     setAllProducts([])
     setPage(1)
     setHasMore(true)
-  }, [search, selectedShop])
+  }, [search, selectedShop, filters])
 
   // Update products when data changes
   useEffect(() => {
@@ -83,6 +120,8 @@ export function useProducts(search: string = '', limit: number = 25) {
         setAllProducts(prev => [...prev, ...data.products])
       }
       setHasMore(data.hasMore)
+      setTotalPages(data.totalPages || 1)
+      setTotal(data.total || 0)
     }
   }, [data, page])
 
@@ -92,16 +131,33 @@ export function useProducts(search: string = '', limit: number = 25) {
     }
   }
 
+  const goToPage = (pageNum: number) => {
+    if (pageNum >= 1 && pageNum <= totalPages) {
+      setAllProducts([])
+      setPage(pageNum)
+    }
+  }
+
+  const resetProducts = () => {
+    setAllProducts([])
+    setPage(1)
+    setHasMore(true)
+    setTotalPages(1)
+    setTotal(0)
+  }
+
   return {
     products: allProducts,
     isLoading: !error && !data,
     error,
     hasMore,
+    currentPage: page,
+    totalPages,
+    total,
     loadMore,
+    goToPage,
     mutate: () => {
-      setAllProducts([])
-      setPage(1)
-      setHasMore(true)
+      resetProducts()
       mutate()
     },
   }

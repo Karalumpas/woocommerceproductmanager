@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '../../../lib/db'
 import { products, variations, shops } from '../../../lib/db/schema'
-import { eq, ilike, or, and, desc } from 'drizzle-orm'
+import { eq, ilike, or, and, desc, asc, sql } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,6 +10,15 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '25')
+    
+    // Filter parameters
+    const category = searchParams.get('category')
+    const brand = searchParams.get('brand')
+    const status = searchParams.get('status')
+    const stockStatus = searchParams.get('stockStatus')
+    const type = searchParams.get('type')
+    const sortBy = searchParams.get('sortBy') || 'dateModified'
+    const sortOrder = searchParams.get('sortOrder') || 'desc'
 
     if (!shopId) {
       return NextResponse.json({ error: 'Shop ID is required' }, { status: 400 })
@@ -28,13 +37,72 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Add category filter
+    if (category) {
+      whereConditions.push(
+        sql`CAST(${products.categories} AS TEXT) LIKE ${'%"name":"' + category + '"%'}`
+      )
+    }
+
+    // Add brand filter (assuming brand is stored in attributes)
+    if (brand) {
+      whereConditions.push(
+        sql`CAST(${products.attributes} AS TEXT) LIKE ${'%"name":"brand"%"option":"' + brand + '"%'}`
+      )
+    }
+
+    // Add status filter
+    if (status) {
+      whereConditions.push(eq(products.status, status))
+    }
+
+    // Add stock status filter
+    if (stockStatus) {
+      whereConditions.push(eq(products.stockStatus, stockStatus))
+    }
+
+    // Add type filter
+    if (type) {
+      whereConditions.push(eq(products.type, type))
+    }
+
+    // Determine sort column and order
+    let sortColumn
+    switch (sortBy) {
+      case 'name':
+        sortColumn = products.name
+        break
+      case 'price':
+        sortColumn = products.regularPrice
+        break
+      case 'dateCreated':
+        sortColumn = products.dateCreated
+        break
+      case 'sku':
+        sortColumn = products.sku
+        break
+      default:
+        sortColumn = products.dateModified
+    }
+
+    const sortFunction = sortOrder === 'asc' ? asc : desc
+
+    // Get total count for pagination
+    const totalCountResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(products)
+      .where(and(...whereConditions))
+
+    const totalCount = totalCountResult[0]?.count || 0
+    const totalPages = Math.ceil(totalCount / limit)
+
     // Add pagination
     const offset = (page - 1) * limit
     const productsResult = await db
       .select()
       .from(products)
       .where(and(...whereConditions))
-      .orderBy(desc(products.dateModified))
+      .orderBy(sortFunction(sortColumn))
       .limit(limit + 1) // Get one extra to check if there are more
       .offset(offset)
 
@@ -55,6 +123,8 @@ export async function GET(request: NextRequest) {
       hasMore,
       page,
       limit,
+      total: totalCount,
+      totalPages,
     })
   } catch (error) {
     console.error('Error fetching products:', error)
