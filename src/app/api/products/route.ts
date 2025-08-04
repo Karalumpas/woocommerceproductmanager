@@ -129,13 +129,16 @@ export async function GET(request: NextRequest) {
       // Safe JSON parsing with fallbacks
       const parseJsonSafely = (jsonString: any, fallback: any = []) => {
         if (!jsonString) return fallback
-        if (typeof jsonString !== 'string') return jsonString
-        try {
-          return JSON.parse(jsonString)
-        } catch (error) {
-          console.error('JSON parse error:', error)
-          return fallback
+        if (typeof jsonString === 'string') {
+          try {
+            return JSON.parse(jsonString)
+          } catch (error) {
+            console.error('JSON parse error:', error)
+            return fallback
+          }
         }
+        // If it's already an object, assume it's correct
+        return jsonString
       }
 
       return {
