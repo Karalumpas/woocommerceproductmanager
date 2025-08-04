@@ -71,6 +71,14 @@ export function ProductList({
   hasMore = false,
   onLoadMore
 }: ProductListProps) {
+  
+  // Debug: Log all products to see their structure
+  console.log('ProductList Debug - All products:', products?.slice(0, 2)?.map(p => ({
+    name: p.name,
+    images: p.images,
+    hasImages: p.images && Array.isArray(p.images) && p.images.length > 0,
+    firstImageSrc: p.images?.[0]?.src
+  })))
   if (isLoading && products.length === 0) {
     return (
       <div className="grid grid-cols-1 gap-4">
@@ -230,32 +238,48 @@ function ProductGridItem({ product, onSelect }: ProductItemProps) {
       <CardContent className="p-4">
         <div className="space-y-3">
           {/* Product Image */}
-          <div className="aspect-square relative">
-            {product.images && product.images.length > 0 && product.images[0]?.src ? (
+          <div className="aspect-square relative border-2 border-red-500">
+            {/* Test 1: Always render a static image */}
+            <img
+              src="https://medeland.dk/wp-content/uploads/YP259_LS00_2025.jpg"
+              alt="Test"
+              className="w-8 h-8 border border-green-500 absolute top-0 left-0 z-10"
+              onLoad={() => console.log('Static test image loaded')}
+              onError={() => console.log('Static test image failed')}
+            />
+            
+            {/* Test 2: Show raw data as text */}
+            <div className="absolute top-0 right-0 bg-yellow-200 text-xs p-1 z-20">
+              {product.images?.[0]?.src ? 'HAS_SRC' : 'NO_SRC'}
+            </div>
+            
+            {/* Original conditional logic */}
+            {product.images && Array.isArray(product.images) && product.images.length > 0 && product.images[0]?.src ? (
               <img
                 src={product.images[0].src}
                 alt={product.name}
-                className="w-full h-full object-cover rounded-md"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                }}
+                className="w-full h-full object-cover rounded-md border-2 border-blue-500"
+                onError={() => console.log('Dynamic image failed:', product.images[0].src)}
+                onLoad={() => console.log('Dynamic image loaded:', product.images[0].src)}
               />
-            ) : null}
-            <div className={`w-full h-full bg-gray-100 rounded-md flex items-center justify-center ${
-              product.images && product.images.length > 0 && product.images[0]?.src ? 'hidden' : ''
-            }`}>
-              <Package className="h-8 w-8 text-gray-400" />
-            </div>
+            ) : (
+              <div className="w-full h-full bg-gray-100 rounded-md flex items-center justify-center">
+                <Package className="h-8 w-8 text-gray-400" />
+                <span className="text-xs">NO IMG</span>
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
           <div className="space-y-2">
-            <h3 className="font-medium text-sm line-clamp-2" title={product.name}>
-              {product.name}
-            </h3>
-            
-            {product.sku && (
+              <h3 className="font-medium text-sm line-clamp-2" title={product.name}>
+                {product.name}
+                {/* Debug: Show image info in title */}
+                <small className="block text-xs text-red-500">
+                  Images: {Array.isArray(product.images) ? product.images.length : 'not array'} | 
+                  Has src: {product.images?.[0]?.src ? 'yes' : 'no'}
+                </small>
+              </h3>            {product.sku && (
               <p className="text-xs text-gray-500 font-mono">{product.sku}</p>
             )}
 
@@ -321,20 +345,32 @@ function ProductListItem({ product, onSelect }: ProductItemProps) {
         <div className="flex items-center space-x-4">
           {/* Product Image */}
           <div className="flex-shrink-0">
-            {product.images && product.images.length > 0 && product.images[0]?.src ? (
+            {product.images && Array.isArray(product.images) && product.images.length > 0 && product.images[0]?.src ? (
               <img
                 src={product.images[0].src}
                 alt={product.name}
                 className="h-16 w-16 object-cover rounded-md"
                 onError={(e) => {
+                  console.error('List image failed to load:', product.images[0].src)
+                  // Hide failed image and show placeholder
                   e.currentTarget.style.display = 'none'
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                  const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                  if (placeholder) {
+                    placeholder.style.display = 'flex'
+                  }
+                }}
+                onLoad={() => {
+                  console.log('List image loaded successfully:', product.images[0].src)
                 }}
               />
             ) : null}
-            <div className={`h-16 w-16 bg-gray-100 rounded-md flex items-center justify-center ${
-              product.images && product.images.length > 0 && product.images[0]?.src ? 'hidden' : ''
-            }`}>
+            
+            <div 
+              className="h-16 w-16 bg-gray-100 rounded-md flex items-center justify-center"
+              style={{
+                display: (product.images && Array.isArray(product.images) && product.images.length > 0 && product.images[0]?.src) ? 'none' : 'flex'
+              }}
+            >
               <Package className="h-6 w-6 text-gray-400" />
             </div>
           </div>

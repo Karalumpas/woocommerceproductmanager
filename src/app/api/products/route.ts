@@ -148,6 +148,18 @@ export async function GET(request: NextRequest) {
       }
     }))
 
+    // Debug logging for first product images
+    if (parsedProducts.length > 0) {
+      console.log('First product images debug:', {
+        name: parsedProducts[0].name,
+        imagesRaw: parsedProducts[0].images,
+        imagesType: typeof parsedProducts[0].images,
+        imagesIsArray: Array.isArray(parsedProducts[0].images),
+        imagesLength: parsedProducts[0].images?.length,
+        firstImage: parsedProducts[0].images?.[0]
+      })
+    }
+
     return NextResponse.json({
       products: parsedProducts,
       hasMore,
