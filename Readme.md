@@ -64,7 +64,7 @@ Opret `.env.local` fil:
 ```env
 DATABASE_URL="postgresql://username:password@localhost:5432/woocommerce_manager"
 NEXTAUTH_SECRET="your-secret-key"
-NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_URL="http://localhost:6000"
 ```
 
 4. **Konfigurer database**
@@ -77,7 +77,7 @@ npm run db:migrate
 npm run dev
 ```
 
-Applikationen kører nu på `http://localhost:3000`
+Applikationen kører nu på `http://localhost:6000`
 
 ## 🐳 Docker Deployment
 

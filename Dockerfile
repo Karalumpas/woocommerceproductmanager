@@ -37,14 +37,14 @@ RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 6000
 
-ENV PORT=3000
+ENV PORT=6000
 ENV HOSTNAME="0.0.0.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:3000/api/health || exit 1
+  CMD wget --quiet --tries=1 --spider http://localhost:6000/api/health || exit 1
 
 CMD ["node", "server.js"]
 
