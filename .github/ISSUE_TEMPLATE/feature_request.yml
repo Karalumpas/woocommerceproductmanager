@@ -1,0 +1,137 @@
+name: Feature request
+description: Foreslå en idé til dette projekt
+title: "[FEATURE] "
+labels: ["enhancement", "feature request"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tak for dit forslag til en ny funktion! 💡
+        
+        Før du opretter denne feature request, sørg for venligst at:
+        - [ ] Søge i eksisterende issues for at se om funktionen allerede er foreslået
+        - [ ] Overveje om funktionen passer til projektets omfang og mål
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Er din feature request relateret til et problem?
+      description: En klar og kortfattet beskrivelse af hvad problemet er
+      placeholder: "Jeg er frustreret over at..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Beskriv den ønskede løsning
+      description: En klar og kortfattet beskrivelse af hvad du ønsker skulle ske
+      placeholder: "Jeg vil gerne have at..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Beskriv alternativer du har overvejet
+      description: En klar og kortfattet beskrivelse af eventuelle alternative løsninger eller funktioner du har overvejet
+      placeholder: "Jeg har også overvejet..."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Kategori
+      description: Hvilken kategori passer denne feature bedst til?
+      options:
+        - UI/UX forbedringer
+        - Ny produktfunktion
+        - Import/Export funktionalitet
+        - Synkronisering og API
+        - Performance
+        - Sikkerhed
+        - Database og datamodellering
+        - Developer Experience
+        - Dokumentation
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioritet
+      description: Hvor vigtig er denne feature for dig?
+      options:
+        - Lav (nice to have)
+        - Medium (ville være nyttigt)
+        - Høj (betydelig forbedring)
+        - Kritisk (essentiel for mit workflow)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: complexity
+    attributes:
+      label: Estimeret kompleksitet
+      description: Vurdér omtrent hvor kompleks denne feature ville være at implementere
+      options:
+        - label: Simpel (få timers arbejde)
+        - label: Medium (1-2 dages arbejde)
+        - label: Kompleks (ugevis af arbejde)
+        - label: Meget kompleks (måneder af arbejde)
+
+  - type: textarea
+    id: technical-details
+    attributes:
+      label: Tekniske detaljer
+      description: Hvis du har teknisk baggrund, beskriv venligst hvordan du forestiller dig denne feature kunne implementeres
+      placeholder: "Tekniske overvejelser, API ændringer, database schema ændringer, etc..."
+
+  - type: textarea
+    id: user-stories
+    attributes:
+      label: User Stories
+      description: Beskriv hvordan forskellige typer brugere ville interagere med denne feature
+      placeholder: |
+        Som en [type bruger]
+        Vil jeg gerne [handling]
+        Så jeg kan [fordel]
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptkriterier
+      description: Hvad skal være opfyldt for at denne feature kan betragtes som færdig?
+      placeholder: |
+        - [ ] Kriterium 1
+        - [ ] Kriterium 2
+        - [ ] Kriterium 3
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups/Wireframes
+      description: Hvis relevant, tilføj mockups, wireframes eller screenshots af lignende funktioner fra andre apps
+      placeholder: Træk og slip billeder her...
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Yderligere kontekst
+      description: Tilføj eventuel anden kontekst eller screenshots om feature requesten her
+      placeholder: Eventuelle andre detaljer...
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Villighed til at bidrage
+      description: Er du interesseret i at hjælpe med implementeringen?
+      options:
+        - label: Jeg vil gerne hjælpe med at implementere denne feature
+        - label: Jeg kan hjælpe med testing
+        - label: Jeg kan hjælpe med dokumentation
+        - label: Jeg kan give feedback under udviklingen
