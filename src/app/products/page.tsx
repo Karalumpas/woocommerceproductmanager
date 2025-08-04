@@ -12,11 +12,14 @@ import { CreateProduct } from '../../components/products/create-product'
 import { SyncProgress } from '../../components/products/sync-progress'
 import { ProductFilters } from '../../components/products/product-filters'
 import { useProducts } from '../../lib/hooks/use-products'
+import { useShops } from '../../hooks/use-shops'
 import { useAppStore } from '../../lib/store'
 import { Toaster } from '../../components/ui/toaster'
+import { useToast } from '../../hooks/use-toast'
 
 interface Product {
   id: number
+  shopId: number
   wooId: number
   name: string
   slug: string
@@ -28,12 +31,17 @@ interface Product {
   salePrice: string | null
   stockStatus: string
   stockQuantity: number | null
+  description: string
+  shortDescription: string
+  categories: any[]
   images: any[]
+  attributes: any[]
   variations: any[]
   variationsCount?: number
-  categories: any[]
   dateCreated: string
   dateModified: string
+  createdAt: string
+  updatedAt: string
 }
 
 interface ProductFilters {
@@ -50,6 +58,7 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([])
   const [showImport, setShowImport] = useState(false)
   const [showExport, setShowExport] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
@@ -62,6 +71,8 @@ export default function ProductsPage() {
   const [brands, setBrands] = useState<string[]>([])
   
   const { selectedShop, setSelectedShop } = useAppStore()
+  const { shops } = useShops()
+  const { toast } = useToast()
   const { products, isLoading, error, currentPage, totalPages, total, hasMore, goToPage, loadMore, mutate } = useProducts(searchTerm, 25, filters)
 
   // Auto-select first shop if none selected
@@ -91,6 +102,75 @@ export default function ProductsPage() {
         .catch(console.error)
     }
   }, [selectedShop])
+
+  // Function to handle sending products to another shop
+  const handleSendToShop = async (products: Product[], targetShopId: number) => {
+    const targetShop = shops.find(s => s.id === targetShopId)
+    if (!targetShop) {
+      toast({
+        title: "Error",
+        description: "Target shop not found",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const response = await fetch('/api/products/transfer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          products: products.map(p => ({
+            id: p.id,
+            shopId: p.shopId,
+            wooId: p.wooId,
+            name: p.name,
+            sku: p.sku,
+            type: p.type,
+            status: p.status,
+            regularPrice: p.regularPrice,
+            salePrice: p.salePrice,
+            stockStatus: p.stockStatus,
+            stockQuantity: p.stockQuantity,
+            description: p.description,
+            shortDescription: p.shortDescription,
+            categories: p.categories,
+            images: p.images,
+            attributes: p.attributes,
+            variations: p.variations
+          })),
+          targetShopId,
+          sourceShopId: selectedShop.id
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to transfer products')
+      }
+
+      const result = await response.json()
+      
+      toast({
+        title: "Success",
+        description: `${products.length} product${products.length !== 1 ? 's' : ''} sent to ${targetShop.name}`,
+      })
+
+      // Clear selection
+      setSelectedProducts([])
+      
+      // Refresh products if needed
+      mutate()
+    } catch (error) {
+      console.error('Failed to send products:', error)
+      toast({
+        title: "Error",
+        description: "Failed to send products to shop",
+        variant: "destructive",
+      })
+    }
+  }
 
   if (!selectedShop) {
     return (
@@ -222,6 +302,10 @@ export default function ProductsPage() {
         error={error}
         viewMode={viewMode}
         onProductSelect={setSelectedProduct}
+        selectedProducts={selectedProducts}
+        onProductsSelectionChange={setSelectedProducts}
+        shops={shops.filter(s => s.id !== selectedShop.id)}
+        onSendToShop={handleSendToShop}
         currentPage={currentPage}
         totalPages={totalPages}
         total={total}

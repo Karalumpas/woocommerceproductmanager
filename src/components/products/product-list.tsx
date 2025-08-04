@@ -13,8 +13,17 @@ import {
   ExternalLink, 
   MoreHorizontal,
   Grid,
-  List
+  List,
+  Send,
+  CheckSquare,
+  Square
 } from 'lucide-react'
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu'
 
 interface Product {
   id: number
@@ -49,6 +58,10 @@ interface ProductListProps {
   error: any
   viewMode: 'grid' | 'list'
   onProductSelect: (product: Product) => void
+  selectedProducts?: Product[]
+  onProductsSelectionChange?: (products: Product[]) => void
+  shops?: any[]
+  onSendToShop?: (products: Product[], targetShopId: number) => void
   currentPage?: number
   totalPages?: number
   total?: number
@@ -64,6 +77,10 @@ export function ProductList({
   error, 
   viewMode, 
   onProductSelect,
+  selectedProducts = [],
+  onProductsSelectionChange,
+  shops = [],
+  onSendToShop,
   currentPage = 1,
   totalPages = 1,
   total = 0,
@@ -72,6 +89,38 @@ export function ProductList({
   hasMore = false,
   onLoadMore
 }: ProductListProps) {
+  
+  const handleProductToggle = (product: Product) => {
+    if (!onProductsSelectionChange) return
+    
+    const isSelected = selectedProducts.some(p => p.id === product.id)
+    if (isSelected) {
+      onProductsSelectionChange(selectedProducts.filter(p => p.id !== product.id))
+    } else {
+      onProductsSelectionChange([...selectedProducts, product])
+    }
+  }
+
+  const handleSelectAll = () => {
+    if (!onProductsSelectionChange) return
+    
+    const allSelected = products.every(p => selectedProducts.some(sp => sp.id === p.id))
+    if (allSelected) {
+      // Deselect all current page products
+      const currentPageIds = products.map(p => p.id)
+      onProductsSelectionChange(selectedProducts.filter(p => !currentPageIds.includes(p.id)))
+    } else {
+      // Select all current page products
+      const newSelections = products.filter(p => !selectedProducts.some(sp => sp.id === p.id))
+      onProductsSelectionChange([...selectedProducts, ...newSelections])
+    }
+  }
+
+  const handleSendToShop = (targetShopId: number) => {
+    if (onSendToShop && selectedProducts.length > 0) {
+      onSendToShop(selectedProducts, targetShopId)
+    }
+  }
   
   // Debug: Log all products to see their structure
   console.log('ProductList Debug - All products:', products?.slice(0, 2)?.map(p => ({
@@ -132,6 +181,54 @@ export function ProductList({
   if (viewMode === 'grid') {
     return (
       <div className="space-y-6">
+        {/* Bulk Actions Header */}
+        {onProductsSelectionChange && (
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSelectAll}
+                className="flex items-center gap-2"
+              >
+                {products.every(p => selectedProducts.some(sp => sp.id === p.id)) ? (
+                  <CheckSquare className="h-4 w-4" />
+                ) : (
+                  <Square className="h-4 w-4" />
+                )}
+                Select All ({products.length})
+              </Button>
+              
+              {selectedProducts.length > 0 && (
+                <span className="text-sm text-gray-600">
+                  {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
+                </span>
+              )}
+            </div>
+
+            {selectedProducts.length > 0 && shops.length > 0 && onSendToShop && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" className="flex items-center gap-2">
+                    <Send className="h-4 w-4" />
+                    Send to Shop
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {shops.map((shop) => (
+                    <DropdownMenuItem
+                      key={shop.id}
+                      onClick={() => handleSendToShop(shop.id)}
+                    >
+                      {shop.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        )}
+
         {/* Products Stats */}
         {total > 0 && (
           <div className="text-sm text-gray-600">
@@ -145,6 +242,9 @@ export function ProductList({
               key={product.id} 
               product={product} 
               onSelect={() => onProductSelect(product)}
+              isSelected={selectedProducts.some(p => p.id === product.id)}
+              onToggleSelect={() => handleProductToggle(product)}
+              showCheckbox={!!onProductsSelectionChange}
             />
           ))}
         </div>
@@ -172,6 +272,54 @@ export function ProductList({
 
   return (
     <div className="space-y-6">
+      {/* Bulk Actions Header */}
+      {onProductsSelectionChange && (
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSelectAll}
+              className="flex items-center gap-2"
+            >
+              {products.every(p => selectedProducts.some(sp => sp.id === p.id)) ? (
+                <CheckSquare className="h-4 w-4" />
+              ) : (
+                <Square className="h-4 w-4" />
+              )}
+              Select All ({products.length})
+            </Button>
+            
+            {selectedProducts.length > 0 && (
+              <span className="text-sm text-gray-600">
+                {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
+              </span>
+            )}
+          </div>
+
+          {selectedProducts.length > 0 && shops.length > 0 && onSendToShop && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" className="flex items-center gap-2">
+                  <Send className="h-4 w-4" />
+                  Send to Shop
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {shops.map((shop) => (
+                  <DropdownMenuItem
+                    key={shop.id}
+                    onClick={() => handleSendToShop(shop.id)}
+                  >
+                    {shop.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      )}
+
       {/* Products Stats */}
       {total > 0 && (
         <div className="text-sm text-gray-600">
@@ -185,6 +333,9 @@ export function ProductList({
             key={product.id} 
             product={product} 
             onSelect={() => onProductSelect(product)}
+            isSelected={selectedProducts.some(p => p.id === product.id)}
+            onToggleSelect={() => handleProductToggle(product)}
+            showCheckbox={!!onProductsSelectionChange}
           />
         ))}
       </div>
@@ -213,9 +364,12 @@ export function ProductList({
 interface ProductItemProps {
   product: Product
   onSelect: () => void
+  isSelected?: boolean
+  onToggleSelect?: () => void
+  showCheckbox?: boolean
 }
 
-function ProductGridItem({ product, onSelect }: ProductItemProps) {
+function ProductGridItem({ product, onSelect, isSelected = false, onToggleSelect, showCheckbox = false }: ProductItemProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
@@ -277,7 +431,30 @@ function ProductGridItem({ product, onSelect }: ProductItemProps) {
   };
 
   return (
-    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onSelect}>
+    <Card className="cursor-pointer hover:shadow-md transition-shadow relative" onClick={onSelect}>
+      {/* Checkbox overlay */}
+      {showCheckbox && (
+        <div 
+          className="absolute top-2 left-2 z-10"
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleSelect?.()
+          }}
+        >
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 bg-white/80 hover:bg-white"
+          >
+            {isSelected ? (
+              <CheckSquare className="h-4 w-4 text-blue-600" />
+            ) : (
+              <Square className="h-4 w-4 text-gray-400" />
+            )}
+          </Button>
+        </div>
+      )}
+      
       <CardContent className="p-4">
         <div className="space-y-3">
           {/* Product Image */}
@@ -352,7 +529,7 @@ function ProductGridItem({ product, onSelect }: ProductItemProps) {
   )
 }
 
-function ProductListItem({ product, onSelect }: ProductItemProps) {
+function ProductListItem({ product, onSelect, isSelected = false, onToggleSelect, showCheckbox = false }: ProductItemProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
@@ -414,9 +591,32 @@ function ProductListItem({ product, onSelect }: ProductItemProps) {
   };
 
   return (
-    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onSelect}>
+    <Card className="cursor-pointer hover:shadow-md transition-shadow relative" onClick={onSelect}>
       <CardContent className="p-4">
         <div className="flex items-center space-x-4">
+          {/* Checkbox */}
+          {showCheckbox && (
+            <div 
+              className="flex-shrink-0"
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleSelect?.()
+              }}
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+              >
+                {isSelected ? (
+                  <CheckSquare className="h-4 w-4 text-blue-600" />
+                ) : (
+                  <Square className="h-4 w-4 text-gray-400" />
+                )}
+              </Button>
+            </div>
+          )}
+          
           {/* Product Image */}
           <div className="flex-shrink-0">
             <div className="h-16 w-16 relative">

@@ -25,6 +25,7 @@ import {
   ExternalLink
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useToast } from '../../hooks/use-toast'
 
 // Image component with fallback
 interface ImageWithFallbackProps {
@@ -109,6 +110,7 @@ interface FormData {
 
 export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardProps) {
   const [isEditing, setIsEditing] = useState(false)
+  const { toast } = useToast()
   const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
@@ -153,12 +155,47 @@ export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardP
 
   const handleSave = async () => {
     try {
-      // Implementation will be added for updating product
-      toast.success('Product updated successfully')
+      // Update product via API
+      const response = await fetch(`/api/products/${product.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          shortDescription: formData.shortDescription,
+          sku: formData.sku,
+          regularPrice: formData.regularPrice,
+          salePrice: formData.salePrice,
+          stockQuantity: parseInt(formData.stockQuantity) || null,
+          stockStatus: formData.stockStatus,
+          status: formData.status,
+          type: formData.type,
+          categories: formData.categories,
+          images: formData.images,
+          attributes: formData.attributes,
+          variations: formData.variations,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update product')
+      }
+
+      toast({
+        title: "Success",
+        description: "Product updated successfully",
+      })
       setIsEditing(false)
       onUpdate()
     } catch (error) {
-      toast.error('Failed to update product')
+      console.error('Failed to update product:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "destructive",
+      })
     }
   }
 
