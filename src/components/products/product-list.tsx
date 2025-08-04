@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { ProductCard } from './product-card'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
@@ -216,6 +217,7 @@ interface ProductItemProps {
 
 function ProductGridItem({ product, onSelect }: ProductItemProps) {
   const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
 
   const stockStatusColors = {
     instock: 'bg-green-100 text-green-800',
@@ -235,7 +237,44 @@ function ProductGridItem({ product, onSelect }: ProductItemProps) {
     grouped: 'bg-orange-100 text-orange-800',
   }
 
-  const imageUrl = product.images?.[0]?.src;
+  // Validate and clean image URL
+  const getValidImageUrl = (imageData: any) => {
+    if (!imageData || !imageData.src) return null;
+    
+    const url = imageData.src.trim();
+    if (!url) return null;
+    
+    // Ensure the URL starts with http or https
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return null;
+    }
+    
+    return url;
+  }
+
+  const imageUrl = getValidImageUrl(product.images?.[0]);
+
+  // Debug logging for grid item images
+  console.log('ProductGridItem Debug:', {
+    productName: product.name,
+    imageUrl,
+    hasImages: product.images && Array.isArray(product.images) && product.images.length > 0,
+    imageError,
+    imageLoading,
+    firstImage: product.images?.[0]
+  });
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('Grid image failed to load:', imageUrl, e);
+    setImageError(true);
+    setImageLoading(false);
+  };
+
+  const handleImageLoad = () => {
+    console.log('Grid image loaded successfully:', imageUrl);
+    setImageError(false);
+    setImageLoading(false);
+  };
 
   return (
     <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onSelect}>
@@ -244,12 +283,22 @@ function ProductGridItem({ product, onSelect }: ProductItemProps) {
           {/* Product Image */}
           <div className="aspect-square relative">
             {imageUrl && !imageError ? (
-              <img
-                src={imageUrl}
-                alt={product.name}
-                className="w-full h-full object-cover rounded-md"
-                onError={() => setImageError(true)}
-              />
+              <>
+                {imageLoading && (
+                  <div className="absolute inset-0 bg-gray-100 rounded-md flex items-center justify-center z-10">
+                    <div className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-blue-600 rounded-full"></div>
+                  </div>
+                )}
+                <Image
+                  src={imageUrl}
+                  alt={product.name}
+                  fill
+                  className={`object-cover rounded-md transition-opacity ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                  onError={handleImageError}
+                  onLoad={handleImageLoad}
+                  unoptimized={true}
+                />
+              </>
             ) : (
               <div className="w-full h-full bg-gray-100 rounded-md flex items-center justify-center">
                 <Package className="h-8 w-8 text-gray-400" />
@@ -304,6 +353,9 @@ function ProductGridItem({ product, onSelect }: ProductItemProps) {
 }
 
 function ProductListItem({ product, onSelect }: ProductItemProps) {
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+
   const stockStatusColors = {
     instock: 'bg-green-100 text-green-800',
     outofstock: 'bg-red-100 text-red-800',
@@ -322,39 +374,73 @@ function ProductListItem({ product, onSelect }: ProductItemProps) {
     grouped: 'bg-orange-100 text-orange-800',
   }
 
+  // Validate and clean image URL
+  const getValidImageUrl = (imageData: any) => {
+    if (!imageData || !imageData.src) return null;
+    
+    const url = imageData.src.trim();
+    if (!url) return null;
+    
+    // Ensure the URL starts with http or https
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return null;
+    }
+    
+    return url;
+  }
+
+  const imageUrl = getValidImageUrl(product.images?.[0]);
+
+  // Debug logging for list item images
+  console.log('ProductListItem Debug:', {
+    productName: product.name,
+    hasImages: product.images && Array.isArray(product.images) && product.images.length > 0,
+    imageUrl,
+    imageError,
+    imageLoading,
+    firstImage: product.images?.[0]
+  });
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('List image failed to load:', imageUrl, e);
+    setImageError(true);
+    setImageLoading(false);
+  };
+
+  const handleImageLoad = () => {
+    console.log('List image loaded successfully:', imageUrl);
+    setImageError(false);
+    setImageLoading(false);
+  };
+
   return (
     <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onSelect}>
       <CardContent className="p-4">
         <div className="flex items-center space-x-4">
           {/* Product Image */}
           <div className="flex-shrink-0">
-            {product.images && Array.isArray(product.images) && product.images.length > 0 && product.images[0]?.src ? (
-              <img
-                src={product.images[0].src}
-                alt={product.name}
-                className="h-16 w-16 object-cover rounded-md"
-                onError={(e) => {
-                  console.error('List image failed to load:', product.images[0].src)
-                  // Hide failed image and show placeholder
-                  e.currentTarget.style.display = 'none'
-                  const placeholder = e.currentTarget.nextElementSibling as HTMLElement
-                  if (placeholder) {
-                    placeholder.style.display = 'flex'
-                  }
-                }}
-                onLoad={() => {
-                  console.log('List image loaded successfully:', product.images[0].src)
-                }}
-              />
-            ) : null}
-            
-            <div 
-              className="h-16 w-16 bg-gray-100 rounded-md flex items-center justify-center"
-              style={{
-                display: (product.images && Array.isArray(product.images) && product.images.length > 0 && product.images[0]?.src) ? 'none' : 'flex'
-              }}
-            >
-              <Package className="h-6 w-6 text-gray-400" />
+            <div className="h-16 w-16 relative">
+              {imageUrl && !imageError ? (
+                <>
+                  {imageLoading && (
+                    <div className="absolute inset-0 bg-gray-100 rounded-md flex items-center justify-center">
+                      <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-blue-600 rounded-full"></div>
+                    </div>
+                  )}
+                  <img
+                    src={imageUrl}
+                    alt={product.name}
+                    className={`h-16 w-16 object-cover rounded-md transition-opacity ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                    onError={handleImageError}
+                    onLoad={handleImageLoad}
+                    loading="lazy"
+                  />
+                </>
+              ) : (
+                <div className="h-16 w-16 bg-gray-100 rounded-md flex items-center justify-center">
+                  <Package className="h-6 w-6 text-gray-400" />
+                </div>
+              )}
             </div>
           </div>
 

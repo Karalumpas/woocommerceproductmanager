@@ -26,6 +26,61 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+// Image component with fallback
+interface ImageWithFallbackProps {
+  src: string
+  alt: string
+  className?: string
+  fallback: React.ReactNode
+  onRemove?: () => void
+}
+
+function ImageWithFallback({ src, alt, className, fallback, onRemove }: ImageWithFallbackProps) {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoading, setImageLoading] = useState(true)
+
+  const handleImageError = () => {
+    console.error('Image failed to load:', src)
+    setImageError(true)
+    setImageLoading(false)
+  }
+
+  const handleImageLoad = () => {
+    console.log('Image loaded successfully:', src)
+    setImageError(false)
+    setImageLoading(false)
+  }
+
+  if (imageError || !src) {
+    return <>{fallback}</>
+  }
+
+  return (
+    <div className="relative">
+      {imageLoading && (
+        <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center">
+          <div className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-blue-600 rounded-full"></div>
+        </div>
+      )}
+      <img
+        src={src}
+        alt={alt}
+        className={`${className} ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity`}
+        onError={handleImageError}
+        onLoad={handleImageLoad}
+        loading="lazy"
+      />
+      <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-opacity rounded-lg flex items-center justify-center">
+        {onRemove && (
+          <Button variant="destructive" size="sm" onClick={onRemove}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 interface ProductCardProps {
   product: any
   isOpen: boolean
@@ -137,6 +192,13 @@ export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardP
     setFormData(prev => ({
       ...prev,
       variations: prev.variations.filter((_: any, i: number) => i !== index)
+    }))
+  }
+
+  const handleRemoveImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_: any, i: number) => i !== index)
     }))
   }
 
@@ -472,20 +534,18 @@ export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardP
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {formData.images.map((image: any, index: number) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={image.src}
-                          alt={image.alt || formData.name}
-                          className="w-full h-32 object-cover rounded-lg border"
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-opacity rounded-lg flex items-center justify-center">
-                          {isEditing && (
-                            <Button variant="destructive" size="sm">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
+                      <ImageWithFallback
+                        key={index}
+                        src={image.src}
+                        alt={image.alt || formData.name}
+                        className="w-full h-32 object-cover rounded-lg border"
+                        fallback={
+                          <div className="w-full h-32 bg-gray-100 rounded-lg border flex items-center justify-center">
+                            <ImageIcon className="h-8 w-8 text-gray-400" />
+                          </div>
+                        }
+                        onRemove={isEditing ? () => handleRemoveImage(index) : undefined}
+                      />
                     ))}
                   </div>
                 )}

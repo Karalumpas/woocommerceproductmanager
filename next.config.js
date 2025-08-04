@@ -5,7 +5,7 @@ const nextConfig = {
     serverComponentsExternalPackages: ['pg', 'redis'],
   },
   images: {
-    domains: ['cdn.pimber.ly'],
+    domains: ['cdn.pimber.ly', 'medeland.dk'],
     remotePatterns: [
       {
         protocol: 'https',
