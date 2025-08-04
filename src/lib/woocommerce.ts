@@ -33,6 +33,13 @@ export interface WooProduct {
   total_sales: number
   virtual: boolean
   downloadable: boolean
+  downloads: Array<{
+    id: string
+    name: string
+    file: string
+  }>
+  download_limit: number
+  download_expiry: number
   external_url: string
   button_text: string
   tax_status: 'taxable' | 'shipping' | 'none'
@@ -43,6 +50,7 @@ export interface WooProduct {
   backorders: 'no' | 'notify' | 'yes'
   backorders_allowed: boolean
   backordered: boolean
+  low_stock_amount?: number
   sold_individually: boolean
   weight: string
   dimensions: {
@@ -121,12 +129,22 @@ export interface WooVariation {
   purchasable: boolean
   virtual: boolean
   downloadable: boolean
+  downloads: Array<{
+    id: string
+    name: string
+    file: string
+  }>
+  download_limit: number
+  download_expiry: number
+  tax_status: string
+  tax_class: string
   manage_stock: boolean
   stock_quantity?: number
   stock_status: 'instock' | 'outofstock' | 'onbackorder'
   backorders: 'no' | 'notify' | 'yes'
   backorders_allowed: boolean
   backordered: boolean
+  low_stock_amount?: number
   weight: string
   dimensions: {
     length: string
