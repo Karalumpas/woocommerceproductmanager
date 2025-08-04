@@ -109,6 +109,7 @@ export interface WooVariation {
   date_modified: string
   description: string
   permalink: string
+  name?: string  // Variation navn er ikke altid tilgængeligt
   sku: string
   price: string
   regular_price: string

@@ -197,6 +197,8 @@ export const variations = pgTable(
     productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }).notNull(),
     wooId: integer('woo_id').notNull(),
     wooParentId: integer('woo_parent_id').notNull(),
+    name: varchar('name', { length: 255 }),
+    slug: varchar('slug', { length: 255 }),
     sku: varchar('sku', { length: 100 }),
     status: varchar('status', { length: 20 }).default('publish'),
     description: text('description'),
