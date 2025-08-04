@@ -1,6 +1,6 @@
 import { Worker, Queue } from 'bullmq'
 import Redis from 'ioredis'
-import { db } from '../lib/db'
+import { db } from '../lib/db/index'
 import { importBatches, importErrors, products, variations, shops } from '../lib/db/schema'
 import { eq } from 'drizzle-orm'
 import Papa from 'papaparse'
@@ -10,7 +10,7 @@ import type { WooProduct, WooVariation } from '../lib/woocommerce'
 
 // Redis connection
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-  maxRetriesPerRequest: 3,
+  maxRetriesPerRequest: null, // Required for BullMQ
 })
 
 // Job queues

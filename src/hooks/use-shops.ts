@@ -4,13 +4,22 @@ import type { Shop, NewShop } from '@/lib/db/schema'
 
 const API_BASE = '/api/shops'
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (url: string) => fetch(url).then((res) => {
+  if (!res.ok) {
+    throw new Error('Failed to fetch')
+  }
+  return res.json()
+})
 
 export function useShops() {
-  const { data: shops = [], error, mutate, isLoading } = useSWR<Shop[]>(API_BASE, fetcher, {
+  const { data, error, mutate, isLoading } = useSWR<Shop[]>(API_BASE, fetcher, {
     revalidateOnFocus: false,
     refreshInterval: 60000, // Revalidate every minute
+    fallbackData: [], // Ensure we always have an array
   })
+
+  // Ensure shops is always an array
+  const shops = Array.isArray(data) ? data : []
 
   const createShop = async (shopData: Omit<NewShop, 'id' | 'createdAt' | 'updatedAt'>) => {
     const response = await fetch(API_BASE, {
@@ -84,7 +93,7 @@ export function useShops() {
       updatedShops[shopIndex] = {
         ...updatedShops[shopIndex],
         status: result.success ? 'online' : 'offline',
-        lastPing: new Date().toISOString(),
+        lastPing: new Date(),
       }
       mutate(updatedShops, false)
     }

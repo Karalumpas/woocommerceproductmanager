@@ -46,13 +46,13 @@ services:
     container_name: woocommerce-manager-app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "666:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/woocommerce_manager
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/woocommerce_manager?sslmode=disable
       - REDIS_URL=redis://redis:6379
       - NEXTAUTH_SECRET=your-production-secret-key-here
-      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_URL=http://localhost:666
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,7 +76,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/woocommerce_manager
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/woocommerce_manager?sslmode=disable
       - REDIS_URL=redis://redis:6379
     depends_on:
       postgres:

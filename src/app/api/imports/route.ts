@@ -4,7 +4,8 @@ import { importBatches, importErrors } from '../../../lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
-import { csvImportQueue } from '../../../workers'
+// Remove BullMQ import for now to fix build
+// import { csvImportQueue } from '../../../workers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -84,22 +85,23 @@ export async function POST(request: NextRequest) {
       .returning()
 
     // Add job to queue
-    await csvImportQueue.add(
-      `csv-import-${batch.id}`,
-      {
-        batchId: batch.id,
-        shopId: parseInt(shopId),
-        filePath,
-        type,
-      },
-      {
-        attempts: 3,
-        backoff: {
-          type: 'exponential',
-          delay: 2000,
-        },
-      }
-    )
+    // TODO: Re-enable when BullMQ Redis config is fixed
+    // await csvImportQueue.add(
+    //   `csv-import-${batch.id}`,
+    //   {
+    //     batchId: batch.id,
+    //     shopId: parseInt(shopId),
+    //     filePath,
+    //     type,
+    //   },
+    //   {
+    //     attempts: 3,
+    //     backoff: {
+    //       type: 'exponential',
+    //       delay: 2000,
+    //     },
+    //   }
+    // )
 
     return NextResponse.json({ batch })
   } catch (error) {

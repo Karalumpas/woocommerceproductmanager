@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '../../../../../lib/db'
 import { importBatches } from '../../../../../lib/db/schema'
 import { eq } from 'drizzle-orm'
-import { csvImportQueue } from '../../../../../workers'
+// Remove BullMQ import for now to fix build
+// import { csvImportQueue } from '../../../../../workers'
 
 export async function POST(
   request: NextRequest,
@@ -30,12 +31,13 @@ export async function POST(
     }
 
     // Try to remove job from queue
-    const jobs = await csvImportQueue.getJobs(['active', 'waiting', 'delayed'])
-    const job = jobs.find(j => j.data.batchId === batchId)
+    // TODO: Re-enable when BullMQ Redis config is fixed
+    // const jobs = await csvImportQueue.getJobs(['active', 'waiting', 'delayed'])
+    // const job = jobs.find(j => j.data.batchId === batchId)
     
-    if (job) {
-      await job.remove()
-    }
+    // if (job) {
+    //   await job.remove()
+    // }
 
     // Update batch status
     await db

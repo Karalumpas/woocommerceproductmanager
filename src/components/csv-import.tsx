@@ -254,7 +254,7 @@ export function ImportBatchList({ className }: ImportBatchListProps) {
 
   return (
     <div className={cn("space-y-2", className)}>
-      {batches.map((batch) => (
+      {batches.map((batch: any) => (
         <ImportBatchItem key={batch.id} batch={batch} onCancel={handleCancel} />
       ))}
     </div>
