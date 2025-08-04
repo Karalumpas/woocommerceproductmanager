@@ -1,24 +1,29 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import useSWR from 'swr'
 
 interface StockChartProps {
   shopId: number
 }
 
-interface StockData {
+interface ChartItem {
   name: string
-  inStock: number
-  outOfStock: number
-  onBackorder: number
+  value: number
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
+const getColorByName = (name: string) => {
+  if (name.includes('In Stock')) return '#22c55e';
+  if (name.includes('Out of Stock')) return '#ef4444';
+  if (name.includes('On Backorder')) return '#f59e0b';
+  return '#6b7280';
+}
+
 export function StockChart({ shopId }: StockChartProps) {
-  const { data: stockData, isLoading } = useSWR<StockData[]>(
+  const { data, isLoading } = useSWR<ChartItem[]>(
     `/api/dashboard/${shopId}/stock-chart`,
     fetcher,
     {
@@ -55,17 +60,35 @@ export function StockChart({ shopId }: StockChartProps) {
       </CardHeader>
       <CardContent>
         <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={stockData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="inStock" stackId="a" fill="#22c55e" name="In Stock" />
-              <Bar dataKey="outOfStock" stackId="a" fill="#ef4444" name="Out of Stock" />
-              <Bar dataKey="onBackorder" stackId="a" fill="#f59e0b" name="On Backorder" />
-            </BarChart>
-          </ResponsiveContainer>
+          {data && data.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar 
+                  dataKey="value" 
+                  name="Count"
+                  isAnimationActive={true}
+                  fillOpacity={0.8}
+                  stroke="#000000"
+                  strokeOpacity={0.3}
+                  strokeWidth={1}
+                  barSize={60}
+                  radius={[4, 4, 0, 0]}
+                >
+                  {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={getColorByName(entry.name)} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-muted-foreground">
+              No stock data available
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
