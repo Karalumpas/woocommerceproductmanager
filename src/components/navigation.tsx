@@ -11,11 +11,6 @@ import { UserMenu } from './auth/user-menu'
 
 const navigation = [
   {
-    name: 'Connections',
-    href: '/connections',
-    icon: Cable,
-  },
-  {
     name: 'Dashboard',
     href: '/dashboard',
     icon: BarChart3,

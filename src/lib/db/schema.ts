@@ -65,6 +65,7 @@ export const shops = pgTable(
     consumerKey: varchar('consumer_key', { length: 255 }).notNull(),
     consumerSecret: varchar('consumer_secret', { length: 255 }).notNull(),
     isActive: boolean('is_active').default(true).notNull(),
+    isDefault: boolean('is_default').default(false).notNull(),
     lastPing: timestamp('last_ping'),
     status: varchar('status', { length: 20 }).default('unknown'), // 'online', 'offline', 'error'
     createdAt: timestamp('created_at').defaultNow().notNull(),

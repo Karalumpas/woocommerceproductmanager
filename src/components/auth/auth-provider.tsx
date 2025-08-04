@@ -36,8 +36,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const login = (userData: User) => {
+  const login = async (userData: User) => {
     setUser(userData)
+    
+    // If user has autoSync enabled, trigger sync for default shop
+    if (userData.autoSync) {
+      try {
+        // Get user's shops to find default shop
+        const shopsResponse = await fetch('/api/shops')
+        if (shopsResponse.ok) {
+          const shops = await shopsResponse.json()
+          const defaultShop = shops.find((shop: any) => shop.isDefault)
+          
+          if (defaultShop) {
+            // Trigger background sync for default shop
+            fetch(`/api/products/sync?shopId=${defaultShop.id}&maxProducts=100`, {
+              method: 'POST'
+            }).catch(error => {
+              console.error('Auto-sync failed:', error)
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Auto-sync error:', error)
+      }
+    }
   }
 
   const logout = async () => {

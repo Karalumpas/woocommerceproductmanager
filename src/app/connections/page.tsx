@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Zap, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { Plus, Edit, Trash2, Zap, CheckCircle, XCircle, AlertCircle, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -30,6 +30,7 @@ export default function ConnectionsPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [testingConnection, setTestingConnection] = useState<number | null>(null)
+  const [settingDefault, setSettingDefault] = useState<number | null>(null)
   
   const { selectedShop, setSelectedShop } = useAppStore()
   const { shops, isLoading, createShop, updateShop, deleteShop, testShopConnection } = useShops()
@@ -93,6 +94,26 @@ export default function ConnectionsPage() {
       await testShopConnection(shop.id)
     } finally {
       setTestingConnection(null)
+    }
+  }
+
+  const handleSetDefault = async (shopId: number) => {
+    setSettingDefault(shopId)
+    try {
+      const response = await fetch(`/api/shops/${shopId}/set-default`, {
+        method: 'PUT',
+      })
+
+      if (response.ok) {
+        // Refresh shops to get updated default status
+        window.location.reload() // Simple approach to refresh the data
+      } else {
+        console.error('Failed to set default shop')
+      }
+    } catch (error) {
+      console.error('Error setting default shop:', error)
+    } finally {
+      setSettingDefault(null)
     }
   }
 
@@ -279,6 +300,34 @@ export default function ConnectionsPage() {
                         <>
                           <Zap className="mr-1 h-3 w-3" />
                           Test
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant={shop.isDefault ? "default" : "outline"}
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (!shop.isDefault) {
+                          handleSetDefault(shop.id)
+                        }
+                      }}
+                      disabled={settingDefault === shop.id || shop.isDefault}
+                    >
+                      {settingDefault === shop.id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary mr-1" />
+                          Setting...
+                        </>
+                      ) : shop.isDefault ? (
+                        <>
+                          <Star className="mr-1 h-3 w-3 fill-current" />
+                          Default
+                        </>
+                      ) : (
+                        <>
+                          <Star className="mr-1 h-3 w-3" />
+                          Set Default
                         </>
                       )}
                     </Button>
