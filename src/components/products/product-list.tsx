@@ -215,6 +215,8 @@ interface ProductItemProps {
 }
 
 function ProductGridItem({ product, onSelect }: ProductItemProps) {
+  const [imageError, setImageError] = useState(false);
+
   const stockStatusColors = {
     instock: 'bg-green-100 text-green-800',
     outofstock: 'bg-red-100 text-red-800',
@@ -233,39 +235,24 @@ function ProductGridItem({ product, onSelect }: ProductItemProps) {
     grouped: 'bg-orange-100 text-orange-800',
   }
 
+  const imageUrl = product.images?.[0]?.src;
+
   return (
     <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onSelect}>
       <CardContent className="p-4">
         <div className="space-y-3">
           {/* Product Image */}
-          <div className="aspect-square relative border-2 border-red-500">
-            {/* Test 1: Always render a static image */}
-            <img
-              src="https://medeland.dk/wp-content/uploads/YP259_LS00_2025.jpg"
-              alt="Test"
-              className="w-8 h-8 border border-green-500 absolute top-0 left-0 z-10"
-              onLoad={() => console.log('Static test image loaded')}
-              onError={() => console.log('Static test image failed')}
-            />
-            
-            {/* Test 2: Show raw data as text */}
-            <div className="absolute top-0 right-0 bg-yellow-200 text-xs p-1 z-20">
-              {product.images?.[0]?.src ? 'HAS_SRC' : 'NO_SRC'}
-            </div>
-            
-            {/* Original conditional logic */}
-            {product.images && Array.isArray(product.images) && product.images.length > 0 && product.images[0]?.src ? (
+          <div className="aspect-square relative">
+            {imageUrl && !imageError ? (
               <img
-                src={product.images[0].src}
+                src={imageUrl}
                 alt={product.name}
-                className="w-full h-full object-cover rounded-md border-2 border-blue-500"
-                onError={() => console.log('Dynamic image failed:', product.images[0].src)}
-                onLoad={() => console.log('Dynamic image loaded:', product.images[0].src)}
+                className="w-full h-full object-cover rounded-md"
+                onError={() => setImageError(true)}
               />
             ) : (
               <div className="w-full h-full bg-gray-100 rounded-md flex items-center justify-center">
                 <Package className="h-8 w-8 text-gray-400" />
-                <span className="text-xs">NO IMG</span>
               </div>
             )}
           </div>
@@ -274,12 +261,8 @@ function ProductGridItem({ product, onSelect }: ProductItemProps) {
           <div className="space-y-2">
               <h3 className="font-medium text-sm line-clamp-2" title={product.name}>
                 {product.name}
-                {/* Debug: Show image info in title */}
-                <small className="block text-xs text-red-500">
-                  Images: {Array.isArray(product.images) ? product.images.length : 'not array'} | 
-                  Has src: {product.images?.[0]?.src ? 'yes' : 'no'}
-                </small>
-              </h3>            {product.sku && (
+              </h3>
+            {product.sku && (
               <p className="text-xs text-gray-500 font-mono">{product.sku}</p>
             )}
 
