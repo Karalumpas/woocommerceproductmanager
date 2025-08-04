@@ -1,10 +1,10 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { Navigation } from '@/components/navigation'
 import { Toaster } from '@/components/ui/toaster'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '../components/auth/auth-provider'
+import { AuthGuard } from '../components/auth/auth-guard'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -28,10 +28,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <div className="min-h-screen bg-background">
-              <Navigation />
-              <main>{children}</main>
-            </div>
+            <AuthGuard>
+              {children}
+            </AuthGuard>
           </AuthProvider>
           <Toaster />
         </ThemeProvider>

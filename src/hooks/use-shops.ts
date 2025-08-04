@@ -21,7 +21,7 @@ export function useShops() {
   // Ensure shops is always an array
   const shops = Array.isArray(data) ? data : []
 
-  const createShop = async (shopData: Omit<NewShop, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const createShop = async (shopData: Omit<NewShop, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
     const response = await fetch(API_BASE, {
       method: 'POST',
       headers: {

@@ -113,6 +113,7 @@ export const products = pgTable(
     wooId: integer('woo_id').notNull(),
     sku: varchar('sku', { length: 100 }),
     name: varchar('name', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 255 }).notNull(),
     type: varchar('type', { length: 50 }).default('simple'), // 'simple', 'variable', 'grouped', 'external'
     status: varchar('status', { length: 20 }).default('publish'), // 'draft', 'pending', 'private', 'publish'
     featured: boolean('featured').default(false),
@@ -194,6 +195,7 @@ export const variations = pgTable(
     shopId: integer('shop_id').references(() => shops.id, { onDelete: 'cascade' }).notNull(),
     productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }).notNull(),
     wooId: integer('woo_id').notNull(),
+    wooParentId: integer('woo_parent_id').notNull(),
     sku: varchar('sku', { length: 100 }),
     status: varchar('status', { length: 20 }).default('publish'),
     description: text('description'),
@@ -215,6 +217,7 @@ export const variations = pgTable(
     backordersAllowed: boolean('backorders_allowed').default(false),
     backordered: boolean('backordered').default(false),
     weight: decimal('weight', { precision: 8, scale: 2 }),
+    dimensions: jsonb('dimensions'), // Dimensions object
     length: decimal('length', { precision: 8, scale: 2 }),
     width: decimal('width', { precision: 8, scale: 2 }),
     height: decimal('height', { precision: 8, scale: 2 }),

@@ -2,11 +2,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { shops } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
+import { getSessionFromCookie } from '../../../lib/auth'
 
 export async function GET() {
   try {
-    const allShops = await db.select().from(shops).orderBy(shops.createdAt)
-    return NextResponse.json(allShops)
+    // Get user session
+    const sessionData = await getSessionFromCookie()
+    if (!sessionData) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Only return shops for the current user
+    const userShops = await db
+      .select()
+      .from(shops)
+      .where(eq(shops.userId, sessionData.user.id))
+      .orderBy(shops.createdAt)
+    
+    return NextResponse.json(userShops)
   } catch (error) {
     console.error('Failed to fetch shops:', error)
     return NextResponse.json(
@@ -18,6 +31,12 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Get user session
+    const sessionData = await getSessionFromCookie()
+    if (!sessionData) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { name, baseUrl, consumerKey, consumerSecret } = body
 
@@ -35,6 +54,7 @@ export async function POST(request: NextRequest) {
     const [newShop] = await db
       .insert(shops)
       .values({
+        userId: sessionData.user.id,
         name,
         baseUrl: cleanBaseUrl,
         consumerKey,

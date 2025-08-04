@@ -105,6 +105,15 @@ export default function ProductsPage() {
 
   // Function to handle sending products to another shop
   const handleSendToShop = async (products: Product[], targetShopId: number) => {
+    if (!selectedShop) {
+      toast({
+        title: "Error",
+        description: "No shop selected",
+        variant: "destructive",
+      })
+      return
+    }
+
     const targetShop = shops.find(s => s.id === targetShopId)
     if (!targetShop) {
       toast({
