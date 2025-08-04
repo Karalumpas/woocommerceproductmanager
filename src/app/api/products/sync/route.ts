@@ -110,6 +110,8 @@ export async function POST(request: NextRequest) {
               soldIndividually: wooProduct.sold_individually || false,
               weight: wooProduct.weight || null,
               dimensions: wooProduct.dimensions ? JSON.stringify(wooProduct.dimensions) : null,
+              shippingClass: wooProduct.shipping_class || null,
+              shippingClassId: wooProduct.shipping_class_id || null,
               // Undgå at sende length, width og height direkte
               // De eksisterer i databasen men er ikke med i schema.ts
               images: wooProduct.images ? JSON.stringify(wooProduct.images) : null,
@@ -173,6 +175,8 @@ export async function POST(request: NextRequest) {
                       // lowStockAmount findes ikke i variations tabellen
                       weight: variation.weight || null,
                       dimensions: variation.dimensions ? JSON.stringify(variation.dimensions) : null,
+                      shippingClass: variation.shipping_class || null,
+                      shippingClassId: variation.shipping_class_id || null,
                       // Undgå at sende length, width og height direkte
                       // De eksisterer i databasen men er ikke med i schema.ts
                       image: variation.image ? JSON.stringify(variation.image) : null,
