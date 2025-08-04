@@ -7,6 +7,7 @@ import { useAppStore } from '@/lib/store'
 import { Cable, BarChart3, Package } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { ShopSelector } from '@/components/shop-selector'
+import { UserMenu } from './auth/user-menu'
 
 const navigation = [
   {
@@ -78,6 +79,7 @@ export function Navigation() {
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="flex items-center space-x-2">
             <ShopSelector />
+            <UserMenu />
             <ThemeToggle />
           </div>
         </div>

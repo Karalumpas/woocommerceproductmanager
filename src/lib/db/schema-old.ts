@@ -103,7 +103,7 @@ export const productCategories = pgTable(
 )
 
 /**
- * Products table
+ * Products (parent products)
  */
 export const products = pgTable(
   'products',
@@ -111,76 +111,46 @@ export const products = pgTable(
     id: serial('id').primaryKey(),
     shopId: integer('shop_id').references(() => shops.id, { onDelete: 'cascade' }).notNull(),
     wooId: integer('woo_id').notNull(),
-    sku: varchar('sku', { length: 100 }),
-    name: varchar('name', { length: 255 }).notNull(),
-    type: varchar('type', { length: 50 }).default('simple'), // 'simple', 'variable', 'grouped', 'external'
-    status: varchar('status', { length: 20 }).default('publish'), // 'draft', 'pending', 'private', 'publish'
+    name: varchar('name', { length: 500 }).notNull(),
+    slug: varchar('slug', { length: 255 }).notNull(),
+    type: varchar('type', { length: 50 }).default('simple'), // 'simple', 'variable', 'grouped'
+    status: varchar('status', { length: 20 }).default('publish'), // 'publish', 'draft', 'private'
     featured: boolean('featured').default(false),
-    catalogVisibility: varchar('catalog_visibility', { length: 20 }).default('visible'), // 'visible', 'catalog', 'search', 'hidden'
+    catalogVisibility: varchar('catalog_visibility', { length: 20 }).default('visible'),
     description: text('description'),
     shortDescription: text('short_description'),
+    sku: varchar('sku', { length: 100 }),
     price: decimal('price', { precision: 10, scale: 2 }),
     regularPrice: decimal('regular_price', { precision: 10, scale: 2 }),
     salePrice: decimal('sale_price', { precision: 10, scale: 2 }),
-    onSale: boolean('on_sale').default(false),
-    purchasable: boolean('purchasable').default(true),
-    totalSales: integer('total_sales').default(0),
-    virtual: boolean('virtual').default(false),
-    downloadable: boolean('downloadable').default(false),
-    downloadLimit: integer('download_limit'),
-    downloadExpiry: integer('download_expiry'),
-    externalUrl: text('external_url'),
-    buttonText: varchar('button_text', { length: 100 }),
-    taxStatus: varchar('tax_status', { length: 20 }).default('taxable'), // 'taxable', 'shipping', 'none'
-    taxClass: varchar('tax_class', { length: 50 }),
-    manageStock: boolean('manage_stock').default(false),
     stockQuantity: integer('stock_quantity'),
     stockStatus: varchar('stock_status', { length: 20 }).default('instock'), // 'instock', 'outofstock', 'onbackorder'
-    backorders: varchar('backorders', { length: 20 }).default('no'), // 'no', 'notify', 'yes'
-    backordersAllowed: boolean('backorders_allowed').default(false),
-    backordered: boolean('backordered').default(false),
-    lowStockAmount: integer('low_stock_amount'),
-    soldIndividually: boolean('sold_individually').default(false),
-    weight: decimal('weight', { precision: 8, scale: 2 }),
-    length: decimal('length', { precision: 8, scale: 2 }),
-    width: decimal('width', { precision: 8, scale: 2 }),
-    height: decimal('height', { precision: 8, scale: 2 }),
-    shippingRequired: boolean('shipping_required').default(true),
-    shippingTaxable: boolean('shipping_taxable').default(true),
+    manageStock: boolean('manage_stock').default(false),
+    weight: varchar('weight', { length: 20 }),
+    dimensions: jsonb('dimensions'), // {length, width, height}
     shippingClass: varchar('shipping_class', { length: 100 }),
-    shippingClassId: integer('shipping_class_id'),
-    reviewsAllowed: boolean('reviews_allowed').default(true),
-    averageRating: decimal('average_rating', { precision: 3, scale: 2 }).default('0'),
-    ratingCount: integer('rating_count').default(0),
-    relatedIds: jsonb('related_ids'), // Array of product IDs
-    upsellIds: jsonb('upsell_ids'), // Array of product IDs
-    crossSellIds: jsonb('cross_sell_ids'), // Array of product IDs
-    parentId: integer('parent_id'),
-    purchaseNote: text('purchase_note'),
-    categories: jsonb('categories'), // Array of category objects
-    tags: jsonb('tags'), // Array of tag objects
+    categories: jsonb('categories'), // Array of category IDs
+    tags: jsonb('tags'), // Array of tag names
     images: jsonb('images'), // Array of image objects
-    attributes: jsonb('attributes'), // Array of attribute objects
-    defaultAttributes: jsonb('default_attributes'), // Array of default attribute objects
+    attributes: jsonb('attributes'), // Product attributes
+    defaultAttributes: jsonb('default_attributes'), // Default variation attributes
     variations: jsonb('variations'), // Array of variation IDs
-    groupedProducts: jsonb('grouped_products'), // Array of product IDs
     menuOrder: integer('menu_order').default(0),
-    metaData: jsonb('meta_data'), // Array of meta data objects
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    metaData: jsonb('meta_data'), // Additional WooCommerce meta
     dateCreated: timestamp('date_created'),
     dateModified: timestamp('date_modified'),
-    dateOnSaleFrom: timestamp('date_on_sale_from'),
-    dateOnSaleTo: timestamp('date_on_sale_to'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => ({
     shopWooIdx: uniqueIndex('products_shop_woo_idx').on(table.shopId, table.wooId),
     skuIdx: index('products_sku_idx').on(table.sku),
     nameIdx: index('products_name_idx').on(table.name),
-    typeIdx: index('products_type_idx').on(table.type),
     statusIdx: index('products_status_idx').on(table.status),
-    priceIdx: index('products_price_idx').on(table.price),
     stockStatusIdx: index('products_stock_status_idx').on(table.stockStatus),
+    typeIdx: index('products_type_idx').on(table.type),
+    categoriesIdx: index('products_categories_idx').using('gin', table.categories),
+    attributesIdx: index('products_attributes_idx').using('gin', table.attributes),
   })
 )
 
@@ -194,55 +164,39 @@ export const variations = pgTable(
     shopId: integer('shop_id').references(() => shops.id, { onDelete: 'cascade' }).notNull(),
     productId: integer('product_id').references(() => products.id, { onDelete: 'cascade' }).notNull(),
     wooId: integer('woo_id').notNull(),
+    wooParentId: integer('woo_parent_id').notNull(),
     sku: varchar('sku', { length: 100 }),
     status: varchar('status', { length: 20 }).default('publish'),
     description: text('description'),
     price: decimal('price', { precision: 10, scale: 2 }),
     regularPrice: decimal('regular_price', { precision: 10, scale: 2 }),
     salePrice: decimal('sale_price', { precision: 10, scale: 2 }),
-    onSale: boolean('on_sale').default(false),
-    purchasable: boolean('purchasable').default(true),
-    virtual: boolean('virtual').default(false),
-    downloadable: boolean('downloadable').default(false),
-    downloadLimit: integer('download_limit'),
-    downloadExpiry: integer('download_expiry'),
-    taxStatus: varchar('tax_status', { length: 20 }).default('taxable'),
-    taxClass: varchar('tax_class', { length: 50 }),
-    manageStock: boolean('manage_stock').default(false),
     stockQuantity: integer('stock_quantity'),
     stockStatus: varchar('stock_status', { length: 20 }).default('instock'),
-    backorders: varchar('backorders', { length: 20 }).default('no'),
-    backordersAllowed: boolean('backorders_allowed').default(false),
-    backordered: boolean('backordered').default(false),
-    weight: decimal('weight', { precision: 8, scale: 2 }),
-    length: decimal('length', { precision: 8, scale: 2 }),
-    width: decimal('width', { precision: 8, scale: 2 }),
-    height: decimal('height', { precision: 8, scale: 2 }),
+    manageStock: boolean('manage_stock').default(false),
+    weight: varchar('weight', { length: 20 }),
+    dimensions: jsonb('dimensions'),
     shippingClass: varchar('shipping_class', { length: 100 }),
-    shippingClassId: integer('shipping_class_id'),
-    image: jsonb('image'), // Image object
-    attributes: jsonb('attributes'), // Array of attribute objects
-    menuOrder: integer('menu_order').default(0),
-    metaData: jsonb('meta_data'), // Array of meta data objects
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    image: jsonb('image'), // Single image object
+    attributes: jsonb('attributes'), // Variation attributes (color, size, etc.)
+    metaData: jsonb('meta_data'),
     dateCreated: timestamp('date_created'),
     dateModified: timestamp('date_modified'),
-    dateOnSaleFrom: timestamp('date_on_sale_from'),
-    dateOnSaleTo: timestamp('date_on_sale_to'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => ({
     shopWooIdx: uniqueIndex('variations_shop_woo_idx').on(table.shopId, table.wooId),
-    productIdIdx: index('variations_product_id_idx').on(table.productId),
+    productIdx: index('variations_product_idx').on(table.productId),
     skuIdx: index('variations_sku_idx').on(table.sku),
     statusIdx: index('variations_status_idx').on(table.status),
-    priceIdx: index('variations_price_idx').on(table.price),
     stockStatusIdx: index('variations_stock_status_idx').on(table.stockStatus),
+    attributesIdx: index('variations_attributes_idx').using('gin', table.attributes),
   })
 )
 
 /**
- * CSV import batches for tracking bulk operations
+ * Import batches for tracking CSV imports
  */
 export const importBatches = pgTable(
   'import_batches',
@@ -291,6 +245,55 @@ export const importErrors = pgTable(
     errorTypeIdx: index('import_errors_type_idx').on(table.errorType),
   })
 )
+
+export const usersRelations = relations(users, ({ many }) => ({
+  shops: many(shops),
+  sessions: many(sessions),
+}))
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
+}))
+
+export const shopsRelations = relations(shops, ({ one, many }) => ({
+  user: one(users, {
+    fields: [shops.userId],
+    references: [users.id],
+  }),
+  products: many(products),
+  categories: many(productCategories),
+  variations: many(variations),
+  importBatches: many(importBatches),
+}))
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  shop: one(shops, {
+    fields: [products.shopId],
+    references: [shops.id],
+  }),
+  variations: many(variations),
+}))
+
+export const variationsRelations = relations(variations, ({ one }) => ({
+  shop: one(shops, {
+    fields: [variations.shopId],
+    references: [shops.id],
+  }),
+  product: one(products, {
+    fields: [variations.productId],
+    references: [products.id],
+  }),
+}))
+
+export const productCategoriesRelations = relations(productCategories, ({ one }) => ({
+  shop: one(shops, {
+    fields: [productCategories.shopId],
+    references: [shops.id],
+  }),
+}))
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
