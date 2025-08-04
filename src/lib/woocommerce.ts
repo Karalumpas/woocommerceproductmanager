@@ -386,6 +386,13 @@ export class WooCommerceClient {
   }
 
   /**
+   * Get single variation
+   */
+  async getVariation(productId: number, variationId: number): Promise<WooVariation> {
+    return this.request<WooVariation>(`/products/${productId}/variations/${variationId}`)
+  }
+
+  /**
    * Update variation
    */
   async updateVariation(productId: number, variationId: number, variation: Partial<WooVariation>): Promise<WooVariation> {

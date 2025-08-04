@@ -46,7 +46,7 @@ export function useProducts(search: string = '', limit: number = 25) {
     if (!selectedShop) return null
     
     const params = new URLSearchParams({
-      shopId: selectedShop.toString(),
+      shopId: selectedShop.id.toString(),
       page: pageNum.toString(),
       limit: limit.toString(),
     })
@@ -139,7 +139,7 @@ export async function createProduct(productData: Partial<Product>) {
     },
     body: JSON.stringify({
       ...productData,
-      shopId: selectedShop,
+      shopId: selectedShop.id,
     }),
   })
 
@@ -189,6 +189,19 @@ export async function syncProductWithWooCommerce(productId: number) {
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.message || 'Failed to sync product')
+  }
+
+  return response.json()
+}
+
+export async function syncShopProducts(shopId: number) {
+  const response = await fetch(`/api/products/sync?shopId=${shopId}`, {
+    method: 'POST',
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.message || 'Failed to sync shop products')
   }
 
   return response.json()
