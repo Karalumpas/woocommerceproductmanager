@@ -35,6 +35,7 @@ interface Product {
   images: any[]
   attributes: any[]
   variations: any[]
+  variationsCount?: number
   dateCreated: string
   dateModified: string
   createdAt: string
@@ -230,17 +231,22 @@ function ProductGridItem({ product, onSelect }: ProductItemProps) {
         <div className="space-y-3">
           {/* Product Image */}
           <div className="aspect-square relative">
-            {product.images && product.images.length > 0 ? (
+            {product.images && product.images.length > 0 && product.images[0]?.src ? (
               <img
                 src={product.images[0].src}
                 alt={product.name}
                 className="w-full h-full object-cover rounded-md"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                }}
               />
-            ) : (
-              <div className="w-full h-full bg-gray-100 rounded-md flex items-center justify-center">
-                <Package className="h-8 w-8 text-gray-400" />
-              </div>
-            )}
+            ) : null}
+            <div className={`w-full h-full bg-gray-100 rounded-md flex items-center justify-center ${
+              product.images && product.images.length > 0 && product.images[0]?.src ? 'hidden' : ''
+            }`}>
+              <Package className="h-8 w-8 text-gray-400" />
+            </div>
           </div>
 
           {/* Product Info */}
@@ -315,17 +321,22 @@ function ProductListItem({ product, onSelect }: ProductItemProps) {
         <div className="flex items-center space-x-4">
           {/* Product Image */}
           <div className="flex-shrink-0">
-            {product.images && product.images.length > 0 ? (
+            {product.images && product.images.length > 0 && product.images[0]?.src ? (
               <img
                 src={product.images[0].src}
                 alt={product.name}
                 className="h-16 w-16 object-cover rounded-md"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                }}
               />
-            ) : (
-              <div className="h-16 w-16 bg-gray-100 rounded-md flex items-center justify-center">
-                <Package className="h-6 w-6 text-gray-400" />
-              </div>
-            )}
+            ) : null}
+            <div className={`h-16 w-16 bg-gray-100 rounded-md flex items-center justify-center ${
+              product.images && product.images.length > 0 && product.images[0]?.src ? 'hidden' : ''
+            }`}>
+              <Package className="h-6 w-6 text-gray-400" />
+            </div>
           </div>
 
           {/* Product Info */}
@@ -377,8 +388,8 @@ function ProductListItem({ product, onSelect }: ProductItemProps) {
                 </Badge>
                 <Badge className={`text-xs ${typeColors[product.type as keyof typeof typeColors]}`}>
                   {product.type}
-                  {product.type === 'variable' && product.variations && (
-                    <span className="ml-1">({product.variations.length})</span>
+                  {product.type === 'variable' && product.variationsCount !== undefined && (
+                    <span className="ml-1">({product.variationsCount})</span>
                   )}
                 </Badge>
                 {product.stockQuantity !== null && (

@@ -129,14 +129,14 @@ export function ProductFilters({
               <div className="space-y-2">
                 <label className="text-sm font-medium">Category</label>
                 <Select
-                  value={localFilters.category || ''}
-                  onValueChange={(value) => handleFilterChange('category', value)}
+                  value={localFilters.category || 'all'}
+                  onValueChange={(value) => handleFilterChange('category', value === 'all' ? undefined : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All categories" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All categories</SelectItem>
+                    <SelectItem value="all">All categories</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category} value={category}>
                         {category}
@@ -152,14 +152,14 @@ export function ProductFilters({
               <div className="space-y-2">
                 <label className="text-sm font-medium">Brand</label>
                 <Select
-                  value={localFilters.brand || ''}
-                  onValueChange={(value) => handleFilterChange('brand', value)}
+                  value={localFilters.brand || 'all'}
+                  onValueChange={(value) => handleFilterChange('brand', value === 'all' ? undefined : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All brands" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All brands</SelectItem>
+                    <SelectItem value="all">All brands</SelectItem>
                     {brands.map((brand) => (
                       <SelectItem key={brand} value={brand}>
                         {brand}
@@ -174,14 +174,14 @@ export function ProductFilters({
             <div className="space-y-2">
               <label className="text-sm font-medium">Status</label>
               <Select
-                value={localFilters.status || ''}
-                onValueChange={(value) => handleFilterChange('status', value)}
+                value={localFilters.status || 'all'}
+                onValueChange={(value) => handleFilterChange('status', value === 'all' ? undefined : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="publish">Published</SelectItem>
                   <SelectItem value="draft">Draft</SelectItem>
                   <SelectItem value="private">Private</SelectItem>
@@ -193,14 +193,14 @@ export function ProductFilters({
             <div className="space-y-2">
               <label className="text-sm font-medium">Stock Status</label>
               <Select
-                value={localFilters.stockStatus || ''}
-                onValueChange={(value) => handleFilterChange('stockStatus', value)}
+                value={localFilters.stockStatus || 'all'}
+                onValueChange={(value) => handleFilterChange('stockStatus', value === 'all' ? undefined : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All stock statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All stock statuses</SelectItem>
+                  <SelectItem value="all">All stock statuses</SelectItem>
                   <SelectItem value="instock">In Stock</SelectItem>
                   <SelectItem value="outofstock">Out of Stock</SelectItem>
                   <SelectItem value="onbackorder">On Backorder</SelectItem>
@@ -212,14 +212,14 @@ export function ProductFilters({
             <div className="space-y-2">
               <label className="text-sm font-medium">Product Type</label>
               <Select
-                value={localFilters.type || ''}
-                onValueChange={(value) => handleFilterChange('type', value)}
+                value={localFilters.type || 'all'}
+                onValueChange={(value) => handleFilterChange('type', value === 'all' ? undefined : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All types</SelectItem>
+                  <SelectItem value="all">All types</SelectItem>
                   <SelectItem value="simple">Simple</SelectItem>
                   <SelectItem value="variable">Variable</SelectItem>
                   <SelectItem value="grouped">Grouped</SelectItem>

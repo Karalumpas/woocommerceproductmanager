@@ -30,6 +30,7 @@ interface Product {
   stockQuantity: number | null
   images: any[]
   variations: any[]
+  variationsCount?: number
   categories: any[]
   dateCreated: string
   dateModified: string

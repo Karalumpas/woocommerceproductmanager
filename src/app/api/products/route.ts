@@ -109,13 +109,43 @@ export async function GET(request: NextRequest) {
     const hasMore = productsResult.length > limit
     const productsToReturn = hasMore ? productsResult.slice(0, -1) : productsResult
 
-    // Parse JSONB fields that might be stored as strings
-    const parsedProducts = productsToReturn.map(product => ({
-      ...product,
-      images: typeof product.images === 'string' ? JSON.parse(product.images || '[]') : (product.images || []),
-      categories: typeof product.categories === 'string' ? JSON.parse(product.categories || '[]') : (product.categories || []),
-      attributes: typeof product.attributes === 'string' ? JSON.parse(product.attributes || '[]') : (product.attributes || []),
-      variations: typeof product.variations === 'string' ? JSON.parse(product.variations || '[]') : (product.variations || []),
+    // Parse JSONB fields and fetch variations count
+    const parsedProducts = await Promise.all(productsToReturn.map(async (product) => {
+      // Get variations count for variable products
+      let variationsCount = 0
+      if (product.type === 'variable') {
+        try {
+          const variationsResult = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(variations)
+            .where(eq(variations.productId, product.id))
+          
+          variationsCount = Number(variationsResult[0]?.count) || 0
+        } catch (error) {
+          console.error('Error fetching variations count:', error)
+        }
+      }
+
+      // Safe JSON parsing with fallbacks
+      const parseJsonSafely = (jsonString: any, fallback: any = []) => {
+        if (!jsonString) return fallback
+        if (typeof jsonString !== 'string') return jsonString
+        try {
+          return JSON.parse(jsonString)
+        } catch (error) {
+          console.error('JSON parse error:', error)
+          return fallback
+        }
+      }
+
+      return {
+        ...product,
+        images: parseJsonSafely(product.images, []),
+        categories: parseJsonSafely(product.categories, []),
+        attributes: parseJsonSafely(product.attributes, []),
+        variations: Array.from({ length: variationsCount }, (_, i) => ({ id: i + 1 })), // Mock variations for count display
+        variationsCount
+      }
     }))
 
     return NextResponse.json({
