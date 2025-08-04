@@ -1,1 +1,10 @@
-{}
+{
+  "/page": "app/page.js",
+  "/api/auth/me/route": "app/api/auth/me/route.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/api/shops/route": "app/api/shops/route.js",
+  "/api/products/sync/route": "app/api/products/sync/route.js",
+  "/api/dashboard/[id]/route": "app/api/dashboard/[id]/route.js",
+  "/api/dashboard/[id]/stock-chart/route": "app/api/dashboard/[id]/stock-chart/route.js",
+  "/api/imports/route": "app/api/imports/route.js"
+}
