@@ -41,8 +41,17 @@ export async function GET(request: NextRequest) {
     const hasMore = productsResult.length > limit
     const productsToReturn = hasMore ? productsResult.slice(0, -1) : productsResult
 
+    // Parse JSONB fields that might be stored as strings
+    const parsedProducts = productsToReturn.map(product => ({
+      ...product,
+      images: typeof product.images === 'string' ? JSON.parse(product.images || '[]') : (product.images || []),
+      categories: typeof product.categories === 'string' ? JSON.parse(product.categories || '[]') : (product.categories || []),
+      attributes: typeof product.attributes === 'string' ? JSON.parse(product.attributes || '[]') : (product.attributes || []),
+      variations: typeof product.variations === 'string' ? JSON.parse(product.variations || '[]') : (product.variations || []),
+    }))
+
     return NextResponse.json({
-      products: productsToReturn,
+      products: parsedProducts,
       hasMore,
       page,
       limit,

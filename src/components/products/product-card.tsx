@@ -24,7 +24,6 @@ import {
   Settings,
   ExternalLink
 } from 'lucide-react'
-import { useProduct } from '../../lib/hooks/use-products'
 import { toast } from 'sonner'
 
 interface ProductCardProps {
@@ -74,30 +73,28 @@ export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardP
     variations: []
   })
 
-  const { product: productDetails, isLoading } = useProduct(product?.id)
-
   useEffect(() => {
-    if (productDetails) {
+    if (product) {
       setFormData({
-        name: productDetails.name || '',
-        description: productDetails.description || '',
-        shortDescription: productDetails.shortDescription || '',
-        sku: productDetails.sku || '',
-        regularPrice: productDetails.regularPrice || '',
-        salePrice: productDetails.salePrice || '',
-        stockQuantity: productDetails.stockQuantity?.toString() || '',
-        stockStatus: productDetails.stockStatus || 'instock',
-        status: productDetails.status || 'publish',
-        type: productDetails.type || 'simple',
+        name: product.name || '',
+        description: product.description || '',
+        shortDescription: product.shortDescription || '',
+        sku: product.sku || '',
+        regularPrice: product.regularPrice || '',
+        salePrice: product.salePrice || '',
+        stockQuantity: product.stockQuantity?.toString() || '',
+        stockStatus: product.stockStatus || 'instock',
+        status: product.status || 'publish',
+        type: product.type || 'simple',
         weight: '', // Not available in Product interface
-        categories: productDetails.categories || [],
+        categories: product.categories || [],
         tags: [], // Not available in Product interface
-        images: productDetails.images || [],
-        attributes: productDetails.attributes || [],
-        variations: productDetails.variations || []
+        images: product.images || [],
+        attributes: product.attributes || [],
+        variations: product.variations || []
       })
     }
-  }, [productDetails])
+  }, [product])
 
   const handleSave = async () => {
     try {
@@ -143,16 +140,8 @@ export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardP
     }))
   }
 
-  if (isLoading) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-          <div className="flex items-center justify-center h-96">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
+  if (!product) {
+    return null
   }
 
   return (
@@ -162,7 +151,7 @@ export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardP
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
-              {isEditing ? 'Edit Product' : productDetails?.name}
+              {isEditing ? 'Edit Product' : product?.name}
             </DialogTitle>
             <div className="flex items-center gap-2">
               {!isEditing && (

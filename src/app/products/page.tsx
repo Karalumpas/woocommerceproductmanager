@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Plus, Upload, Download, Filter, Grid, List, RefreshCw } from 'lucide-react'
+import { Search, Plus, Upload, Download, Filter, Grid, List } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { ProductList } from '../../components/products/product-list'
@@ -9,11 +9,10 @@ import { ProductCard } from '../../components/products/product-card'
 import { ImportProducts } from '../../components/products/import-products'
 import { ExportProducts } from '../../components/products/export-products'
 import { CreateProduct } from '../../components/products/create-product'
+import { SyncProgress } from '../../components/products/sync-progress'
 import { useProducts } from '../../lib/hooks/use-products'
-import { syncShopProducts } from '../../lib/hooks/use-products'
 import { useAppStore } from '../../lib/store'
 import { Toaster } from '../../components/ui/toaster'
-import { toast } from '../../hooks/use-toast'
 
 interface Product {
   id: number
@@ -42,35 +41,9 @@ export default function ProductsPage() {
   const [showImport, setShowImport] = useState(false)
   const [showExport, setShowExport] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
-  const [isSyncing, setIsSyncing] = useState(false)
   
   const { selectedShop } = useAppStore()
   const { products, isLoading, error, mutate } = useProducts(searchTerm)
-
-  const handleSync = async () => {
-    if (!selectedShop) return
-    
-    setIsSyncing(true)
-    try {
-      const result = await syncShopProducts(selectedShop.id)
-      
-      toast({
-        title: "Synkronisering fuldført",
-        description: `${result.stats.syncedProducts} nye produkter hentet, ${result.stats.updatedProducts} produkter opdateret`,
-      })
-      
-      // Refresh the products list
-      mutate()
-    } catch (error: any) {
-      toast({
-        title: "Synkroniseringsfejl",
-        description: error.message || "Der opstod en fejl under synkronisering",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSyncing(false)
-    }
-  }
 
   if (!selectedShop) {
     return (
@@ -100,15 +73,13 @@ export default function ProductsPage() {
         
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSync}
-            disabled={isSyncing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Synkroniserer...' : 'Synkroniser'}
-          </Button>
+          {selectedShop && (
+            <SyncProgress 
+              shopId={selectedShop.id} 
+              shopName={selectedShop.name} 
+              onSyncComplete={() => mutate()} 
+            />
+          )}
           <Button
             variant="outline"
             size="sm"

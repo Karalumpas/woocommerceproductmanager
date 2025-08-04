@@ -8,6 +8,8 @@ export async function POST(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const shopId = searchParams.get('shopId')
+    const batchSize = parseInt(searchParams.get('batchSize') || '50')
+    const maxProducts = parseInt(searchParams.get('maxProducts') || '500')
 
     if (!shopId) {
       return NextResponse.json({ error: 'Shop ID is required' }, { status: 400 })
@@ -42,15 +44,18 @@ export async function POST(request: NextRequest) {
     let totalProducts = 0
     let syncedProducts = 0
     let updatedProducts = 0
-    const batchSize = 20
+    let processedProducts = 0
 
-    while (true) {
+    while (processedProducts < maxProducts) {
       try {
+        const remainingProducts = maxProducts - processedProducts
+        const currentBatchSize = Math.min(batchSize, remainingProducts)
+
         // Fetch products from WooCommerce
         const { products: wooProducts } = await wooClient.getProducts({
           page,
-          per_page: batchSize,
-          status: 'any', // Get all products regardless of status
+          per_page: currentBatchSize,
+          status: 'publish', // Only get published products for better performance
         })
 
         if (!wooProducts || wooProducts.length === 0) {
@@ -58,6 +63,7 @@ export async function POST(request: NextRequest) {
         }
 
         totalProducts += wooProducts.length
+        processedProducts += wooProducts.length
 
         // Process each product
         for (const wooProduct of wooProducts) {
@@ -154,8 +160,13 @@ export async function POST(request: NextRequest) {
 
         page++
 
-        // Add a small delay to avoid overwhelming the WooCommerce API
-        await new Promise(resolve => setTimeout(resolve, 500))
+        // Add a longer delay to avoid overwhelming the WooCommerce API
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        // Log progress every 100 products
+        if (processedProducts % 100 === 0) {
+          console.log(`Processed ${processedProducts}/${maxProducts} products...`)
+        }
 
       } catch (pageError) {
         console.error(`Error fetching page ${page}:`, pageError)
@@ -175,11 +186,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Products synchronized successfully',
+      message: `Products synchronized successfully (limited to ${maxProducts} products)`,
       stats: {
         totalProducts,
         syncedProducts,
         updatedProducts,
+        processedProducts,
+        maxProducts,
+        hasMore: processedProducts >= maxProducts,
       },
     })
 
