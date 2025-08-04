@@ -1,0 +1,68 @@
+name: Dependency Updates
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Check for dependency updates
+      run: |
+        npm outdated --json > outdated.json || true
+        cat outdated.json
+
+    - name: Update dependencies
+      run: |
+        npm update
+        npm audit fix --force || true
+
+    - name: Check if package-lock.json changed
+      id: verify-changed-files
+      run: |
+        if [ -n "$(git status --porcelain package-lock.json)" ]; then
+          echo "changed=true" >> $GITHUB_OUTPUT
+        else
+          echo "changed=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create Pull Request
+      if: steps.verify-changed-files.outputs.changed == 'true'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: 'chore: update dependencies'
+        title: 'chore: automated dependency updates'
+        body: |
+          ## Automated Dependency Updates 🤖
+          
+          This PR contains automated dependency updates.
+          
+          ### Changes
+          - Updated npm dependencies to latest compatible versions
+          - Fixed security vulnerabilities where possible
+          
+          ### Testing
+          Please review the changes and run tests before merging.
+          
+          **Note**: This PR was created automatically by GitHub Actions.
+        branch: automated-dependency-updates
+        delete-branch: true
+        labels: |
+          dependencies
+          automated

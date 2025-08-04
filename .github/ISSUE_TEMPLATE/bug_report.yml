@@ -1,0 +1,112 @@
+name: Bug report
+description: Opret en fejlrapport for at hjælpe os med at forbedre produktet
+title: "[BUG] "
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tak for at rapportere en fejl! 🐛
+        
+        Før du opretter denne issue, sørg for venligst at:
+        - [ ] Søge i eksisterende issues for at se om problemet allerede er rapporteret
+        - [ ] Teste med den seneste version af applikationen
+        
+  - type: input
+    id: environment
+    attributes:
+      label: Miljø
+      description: Hvilken version og miljø bruger du?
+      placeholder: "f.eks. v1.0.0, Chrome 120, Windows 11"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Beskrivelse af fejlen
+      description: En klar og kortfattet beskrivelse af hvad fejlen er
+      placeholder: Beskriv hvad der går galt...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Trin til at reproducere
+      description: Trin til at reproducere problemet
+      placeholder: |
+        1. Gå til '...'
+        2. Klik på '...'
+        3. Scroll ned til '...'
+        4. Se fejl
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Forventet adfærd
+      description: En klar og kortfattet beskrivelse af hvad du forventede skulle ske
+      placeholder: Jeg forventede at...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Faktisk adfærd
+      description: En klar og kortfattet beskrivelse af hvad der faktisk skete
+      placeholder: I stedet skete der...
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Hvis relevant, tilføj screenshots for at hjælpe med at forklare dit problem
+      placeholder: Træk og slip billeder her...
+
+  - type: textarea
+    id: console-logs
+    attributes:
+      label: Console logs/fejlmeddelelser
+      description: Hvis relevant, kopier eventuelle fejlmeddelelser fra browser console eller server logs
+      render: shell
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: Hvilken browser bruger du?
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Alvorsgrad
+      description: Hvor alvorlig er denne fejl?
+      options:
+        - Lav (kosmetisk problem)
+        - Medium (funktionalitet påvirket, men workaround findes)
+        - Høj (vigtig funktionalitet ødelagt)
+        - Kritisk (applikation ubrugelig)
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Yderligere kontekst
+      description: Tilføj eventuel anden kontekst om problemet her
+      placeholder: Eventuelle andre detaljer...

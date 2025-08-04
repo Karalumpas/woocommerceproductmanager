@@ -1,0 +1,74 @@
+name: Documentation improvement
+description: Foreslå forbedringer til dokumentation
+title: "[DOCS] "
+labels: ["documentation", "enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tak for at hjælpe med at forbedre vores dokumentation! 📚
+
+  - type: dropdown
+    id: docs-type
+    attributes:
+      label: Type dokumentation
+      description: Hvilken type dokumentation handler dette om?
+      options:
+        - README.md
+        - API dokumentation
+        - Setup/installation guide
+        - User guide/tutorial
+        - Developer documentation
+        - Code comments
+        - Configuration documentation
+        - Troubleshooting guide
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-docs
+    attributes:
+      label: Nuværende dokumentation
+      description: Beskriv det aktuelle problem med dokumentationen
+      placeholder: "Den nuværende dokumentation er..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested-improvement
+    attributes:
+      label: Foreslået forbedring
+      description: Beskriv hvordan dokumentationen kan forbedres
+      placeholder: "Jeg foreslår at..."
+    validations:
+      required: true
+
+  - type: input
+    id: affected-pages
+    attributes:
+      label: Berørte filer/sider
+      description: Hvilke filer eller sider skal opdateres?
+      placeholder: "f.eks. README.md, CONTRIBUTING.md, /docs/api.md"
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioritet
+      description: Hvor vigtig er denne dokumentationsforbedring?
+      options:
+        - Lav (mindre forbedring)
+        - Medium (ville hjælpe brugere betydeligt)
+        - Høj (vigtig for brugeroplevelsen)
+        - Kritisk (blokerer for brugeradoption)
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Yderligere kontekst
+      description: Tilføj eventuel anden kontekst eller eksempler
+      placeholder: "Eventuelle andre detaljer..."
