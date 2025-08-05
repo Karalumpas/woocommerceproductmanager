@@ -298,6 +298,25 @@ export const importErrors = pgTable(
   })
 )
 
+/**
+ * Product sync logs
+ */
+export const productSyncLogs = pgTable(
+  'product_sync_logs',
+  {
+    id: serial('id').primaryKey(),
+    productShopId: integer('product_shop_id').references(() => products.id, { onDelete: 'cascade' }).notNull(),
+    action: varchar('action', { length: 50 }).notNull(),
+    status: varchar('status', { length: 20 }).notNull(),
+    message: text('message'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    productIdx: index('product_sync_logs_product_idx').on(table.productShopId),
+    statusIdx: index('product_sync_logs_status_idx').on(table.status),
+  })
+)
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   shops: many(shops),
@@ -328,6 +347,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
     references: [shops.id],
   }),
   variations: many(variations),
+  syncLogs: many(productSyncLogs),
 }))
 
 export const variationsRelations = relations(variations, ({ one }) => ({
@@ -345,6 +365,13 @@ export const productCategoriesRelations = relations(productCategories, ({ one })
   shop: one(shops, {
     fields: [productCategories.shopId],
     references: [shops.id],
+  }),
+}))
+
+export const productSyncLogsRelations = relations(productSyncLogs, ({ one }) => ({
+  product: one(products, {
+    fields: [productSyncLogs.productShopId],
+    references: [products.id],
   }),
 }))
 
@@ -376,6 +403,8 @@ export type Variation = typeof variations.$inferSelect
 export type NewVariation = typeof variations.$inferInsert
 export type ProductCategory = typeof productCategories.$inferSelect
 export type NewProductCategory = typeof productCategories.$inferInsert
+export type ProductSyncLog = typeof productSyncLogs.$inferSelect
+export type NewProductSyncLog = typeof productSyncLogs.$inferInsert
 export type ImportBatch = typeof importBatches.$inferSelect
 export type NewImportBatch = typeof importBatches.$inferInsert
 export type ImportError = typeof importErrors.$inferSelect
