@@ -2,6 +2,15 @@ import { useState, useEffect } from 'react'
 import useSWR from 'swr'
 import { useAppStore } from '../store'
 
+interface ProductShop {
+  shopId: number
+  priceOverride?: string | null
+  shop?: {
+    id: number
+    name: string
+  }
+}
+
 interface Product {
   id: number
   shopId: number
@@ -22,6 +31,7 @@ interface Product {
   images: any[]
   attributes: any[]
   variations: any[]
+  productShops?: ProductShop[]
   dateCreated: string
   dateModified: string
   createdAt: string
@@ -42,6 +52,7 @@ interface ProductFilters {
   status?: string
   stockStatus?: string
   type?: string
+  inShopId?: number
   sortBy?: 'name' | 'price' | 'dateCreated' | 'dateModified' | 'sku'
   sortOrder?: 'asc' | 'desc'
 }
@@ -91,7 +102,10 @@ export function useProducts(search: string = '', limit: number = 25, filters: Pr
     if (filters.sortOrder) {
       params.append('sortOrder', filters.sortOrder)
     }
-    
+
+    // Include related shops information
+    params.append('include', 'productShops')
+
     return `/api/products?${params.toString()}`
   }
 
