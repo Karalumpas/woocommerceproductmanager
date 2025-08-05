@@ -46,8 +46,19 @@ export async function POST(request: NextRequest) {
 
     for (const product of productsToTransfer) {
       try {
+        // Get selected variants for this product if any
+        const variantRows = await db
+          .select()
+          .from(productShopVariants)
+          .where(eq(productShopVariants.productShopId, product.id))
+
+        const selectedVariantIds = variantRows.map(v => v.variationId)
+        const selectedVariations = selectedVariantIds.length
+          ? product.variations?.filter((v: any) => selectedVariantIds.includes(v.id)) || []
+          : product.variations || []
+
         // Prepare product data for WooCommerce
-        const productData = {
+        const productData: any = {
           name: product.name,
           slug: product.slug,
           type: product.type,
@@ -62,6 +73,10 @@ export async function POST(request: NextRequest) {
           categories: product.categories?.map((cat: any) => ({ id: cat.id })) || [],
           images: product.images?.map((img: any) => ({ src: img.src, alt: img.alt })) || [],
           attributes: product.attributes || [],
+        }
+
+        if (selectedVariations.length > 0) {
+          productData.variations = selectedVariations
         }
 
         // Check if product comes from CSV (no shopId or wooId)

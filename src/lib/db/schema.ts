@@ -10,6 +10,7 @@ import {
   jsonb,
   index,
   uniqueIndex,
+  primaryKey,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
@@ -296,6 +297,24 @@ export const variations = pgTable(
 )
 
 /**
+ * Selected product variations for shop transfers
+ */
+export const productShopVariants = pgTable(
+  'product_shop_variants',
+  {
+    productShopId: integer('product_shop_id')
+      .references(() => products.id, { onDelete: 'cascade' })
+      .notNull(),
+    variationId: integer('variation_id')
+      .references(() => variations.id, { onDelete: 'cascade' })
+      .notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.productShopId, table.variationId] }),
+  })
+)
+
+/**
  * CSV import batches for tracking bulk operations
  */
 export const importBatches = pgTable(
@@ -405,6 +424,17 @@ export const variationsRelations = relations(variations, ({ one }) => ({
   }),
 }))
 
+export const productShopVariantsRelations = relations(productShopVariants, ({ one }) => ({
+  product: one(products, {
+    fields: [productShopVariants.productShopId],
+    references: [products.id],
+  }),
+  variation: one(variations, {
+    fields: [productShopVariants.variationId],
+    references: [variations.id],
+  }),
+}))
+
 export const productCategoriesRelations = relations(productCategories, ({ one }) => ({
   shop: one(shops, {
     fields: [productCategories.shopId],
@@ -442,6 +472,8 @@ export type Product = typeof products.$inferSelect
 export type NewProduct = typeof products.$inferInsert
 export type Variation = typeof variations.$inferSelect
 export type NewVariation = typeof variations.$inferInsert
+export type ProductShopVariant = typeof productShopVariants.$inferSelect
+export type NewProductShopVariant = typeof productShopVariants.$inferInsert
 export type ProductCategory = typeof productCategories.$inferSelect
 export type NewProductCategory = typeof productCategories.$inferInsert
 export type ImportBatch = typeof importBatches.$inferSelect
