@@ -79,6 +79,26 @@ export const shops = pgTable(
 )
 
 /**
+ * Sync schedules for shop product updates
+ */
+export const syncSchedules = pgTable(
+  'sync_schedules',
+  {
+    id: serial('id').primaryKey(),
+    productShopId: integer('product_shop_id')
+      .references(() => shops.id, { onDelete: 'cascade' })
+      .notNull(),
+    interval: integer('interval').notNull(), // Interval in seconds
+    lastRun: timestamp('last_run'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    productShopIdx: index('sync_schedules_product_shop_idx').on(table.productShopId),
+  })
+)
+
+/**
  * Product categories
  */
 export const productCategories = pgTable(
@@ -320,6 +340,7 @@ export const shopsRelations = relations(shops, ({ one, many }) => ({
   categories: many(productCategories),
   variations: many(variations),
   importBatches: many(importBatches),
+  syncSchedules: many(syncSchedules),
 }))
 
 export const productsRelations = relations(products, ({ one, many }) => ({
@@ -338,6 +359,13 @@ export const variationsRelations = relations(variations, ({ one }) => ({
   product: one(products, {
     fields: [variations.productId],
     references: [products.id],
+  }),
+}))
+
+export const syncSchedulesRelations = relations(syncSchedules, ({ one }) => ({
+  shop: one(shops, {
+    fields: [syncSchedules.productShopId],
+    references: [shops.id],
   }),
 }))
 
@@ -380,3 +408,5 @@ export type ImportBatch = typeof importBatches.$inferSelect
 export type NewImportBatch = typeof importBatches.$inferInsert
 export type ImportError = typeof importErrors.$inferSelect
 export type NewImportError = typeof importErrors.$inferInsert
+export type SyncSchedule = typeof syncSchedules.$inferSelect
+export type NewSyncSchedule = typeof syncSchedules.$inferInsert

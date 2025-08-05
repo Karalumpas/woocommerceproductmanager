@@ -1,8 +1,15 @@
 import { Worker, Queue } from 'bullmq'
 import Redis from 'ioredis'
 import { db } from '../lib/db/index'
-import { importBatches, importErrors, products, variations, shops } from '../lib/db/schema'
-import { eq } from 'drizzle-orm'
+import {
+  importBatches,
+  importErrors,
+  products,
+  variations,
+  shops,
+  syncSchedules,
+} from '../lib/db/schema'
+import { eq, and, gt } from 'drizzle-orm'
 import Papa from 'papaparse'
 import { readFile } from 'fs/promises'
 import { WooCommerceClient } from '../lib/woocommerce'
@@ -15,12 +22,17 @@ const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
 
 // Job queues
 export const csvImportQueue = new Queue('csv-import', { connection: redis })
+export const shopSyncQueue = new Queue('shop-sync', { connection: redis })
 
 interface CSVImportJob {
   batchId: number
   shopId: number
   filePath: string
   type: 'parent' | 'variations'
+}
+
+interface ShopSyncJob {
+  shopId: number
 }
 
 interface ProductRow {
@@ -438,7 +450,85 @@ async function processVariationsChunk(
         errorMessage: error instanceof Error ? error.message : 'Unknown error',
         rowData: row,
       })
+  }
+}
+}
+
+/**
+ * Process shop sync job
+ */
+async function processShopSync(job: any) {
+  const { shopId }: ShopSyncJob = job.data
+
+  console.log(`Processing shop sync job for shop: ${shopId}`)
+
+  try {
+    // Get schedule and last run time
+    const [schedule] = await db
+      .select()
+      .from(syncSchedules)
+      .where(eq(syncSchedules.productShopId, shopId))
+      .limit(1)
+    const lastRun = schedule?.lastRun ?? new Date(0)
+
+    // Get master (default) shop
+    const [masterShop] = await db
+      .select()
+      .from(shops)
+      .where(eq(shops.isDefault, true))
+      .limit(1)
+
+    if (!masterShop) {
+      console.warn('No default shop configured')
+      return
     }
+
+    // Get target shop
+    const [targetShop] = await db
+      .select()
+      .from(shops)
+      .where(eq(shops.id, shopId))
+      .limit(1)
+
+    if (!targetShop) {
+      console.warn(`Shop not found: ${shopId}`)
+      return
+    }
+
+    // Find changed products since last run in master shop
+    const changedProducts = await db
+      .select()
+      .from(products)
+      .where(
+        and(eq(products.shopId, masterShop.id), gt(products.updatedAt, lastRun))
+      )
+
+    const targetClient = new WooCommerceClient(targetShop)
+
+    for (const product of changedProducts) {
+      try {
+        await targetClient.updateProduct(product.wooId!, {
+          name: product.name,
+          regular_price: product.price ? product.price.toString() : undefined,
+          description: product.description ?? undefined,
+          short_description: product.shortDescription ?? undefined,
+        })
+      } catch (err) {
+        console.error(
+          `Failed to sync product ${product.wooId} to shop ${shopId}:`,
+          err
+        )
+      }
+    }
+
+    if (schedule) {
+      await db
+        .update(syncSchedules)
+        .set({ lastRun: new Date(), updatedAt: new Date() })
+        .where(eq(syncSchedules.id, schedule.id))
+    }
+  } catch (error) {
+    console.error('Shop sync failed:', error)
   }
 }
 
@@ -462,6 +552,17 @@ const csvImportWorker = new Worker(
   }
 )
 
+const shopSyncWorker = new Worker(
+  'shop-sync',
+  processShopSync,
+  {
+    connection: redis,
+    concurrency: 1,
+    removeOnComplete: { count: 10 },
+    removeOnFail: { count: 50 },
+  }
+)
+
 csvImportWorker.on('completed', (job) => {
   console.log(`Job ${job.id} completed`)
 })
@@ -475,13 +576,27 @@ csvImportWorker.on('error', (err) => {
 })
 
 console.log('CSV import worker started')
+shopSyncWorker.on('completed', (job) => {
+  console.log(`Shop sync job ${job.id} completed`)
+})
+
+shopSyncWorker.on('failed', (job, err) => {
+  console.error(`Shop sync job ${job?.id} failed:`, err)
+})
+
+shopSyncWorker.on('error', (err) => {
+  console.error('Shop sync worker error:', err)
+})
+
+console.log('Shop sync worker started')
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('Shutting down worker...')
   await csvImportWorker.close()
+  await shopSyncWorker.close()
   await redis.quit()
   process.exit(0)
 })
 
-export { csvImportWorker }
+export { csvImportWorker, shopSyncWorker }
