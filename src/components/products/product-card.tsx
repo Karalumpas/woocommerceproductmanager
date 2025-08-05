@@ -308,6 +308,20 @@ export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardP
                     )}
                   </div>
 
+                  {product?.productShops?.length ? (
+                    <div>
+                      <Label>Shops</Label>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {product.productShops.map((ps: any) => (
+                          <Badge key={ps.shopId} variant="secondary">
+                            {ps.shop?.name}
+                            {ps.priceOverride ? ` (${ps.priceOverride})` : ''}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
                   <div>
                     <Label htmlFor="description">Description</Label>
                     {isEditing ? (

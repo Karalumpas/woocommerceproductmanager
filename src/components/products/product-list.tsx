@@ -45,6 +45,14 @@ interface Product {
   images: any[]
   attributes: any[]
   variations: any[]
+  productShops?: {
+    shopId: number
+    priceOverride?: string | null
+    shop?: {
+      id: number
+      name: string
+    }
+  }[]
   variationsCount?: number
   dateCreated: string
   dateModified: string
@@ -510,6 +518,18 @@ function ProductGridItem({ product, onSelect, isSelected = false, onToggleSelect
               )}
             </div>
 
+            {/* Shop Badges */}
+            {product.productShops?.length ? (
+              <div className="flex flex-wrap gap-1">
+                {product.productShops.map(ps => (
+                  <Badge key={ps.shopId} variant="secondary" className="text-xs">
+                    {ps.shop?.name}
+                    {ps.priceOverride ? ` (${ps.priceOverride})` : ''}
+                  </Badge>
+                ))}
+              </div>
+            ) : null}
+
             {/* Status Badges */}
             <div className="flex flex-wrap gap-1">
               <Badge className={`text-xs ${statusColors[product.status as keyof typeof statusColors]}`}>
@@ -661,6 +681,17 @@ function ProductListItem({ product, onSelect, isSelected = false, onToggleSelect
                     {product.categories.map(c => c.name).join(', ')}
                   </p>
                 )}
+
+                {product.productShops?.length ? (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {product.productShops.map(ps => (
+                      <Badge key={ps.shopId} variant="secondary" className="text-xs">
+                        {ps.shop?.name}
+                        {ps.priceOverride ? ` (${ps.priceOverride})` : ''}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : null}
               </div>
 
               {/* Price */}
