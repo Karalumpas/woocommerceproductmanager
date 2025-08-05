@@ -184,8 +184,9 @@ export const products = pgTable(
     shopId: integer('shop_id').references(() => shops.id, { onDelete: 'cascade' }).notNull(),
     wooId: integer('woo_id').notNull(),
     sku: varchar('sku', { length: 100 }),
-    name: varchar('name', { length: 255 }).notNull(),
+    name: varchar('name', { length: 500 }).notNull(), // Increased length to match DB
     slug: varchar('slug', { length: 255 }).notNull(),
+    permalink: varchar('permalink', { length: 500 }), // Added permalink field
     type: varchar('type', { length: 50 }).default('simple'), // 'simple', 'variable', 'grouped', 'external'
     status: varchar('status', { length: 20 }).default('publish'), // 'draft', 'pending', 'private', 'publish'
     featured: boolean('featured').default(false),
@@ -202,10 +203,11 @@ export const products = pgTable(
     downloadable: boolean('downloadable').default(false),
     downloadLimit: integer('download_limit'),
     downloadExpiry: integer('download_expiry'),
+    downloads: jsonb('downloads'), // Added downloads field
     externalUrl: text('external_url'),
     buttonText: varchar('button_text', { length: 100 }),
     taxStatus: varchar('tax_status', { length: 20 }).default('taxable'), // 'taxable', 'shipping', 'none'
-    taxClass: varchar('tax_class', { length: 50 }),
+    taxClass: varchar('tax_class', { length: 100 }).default(''), // Updated length to match DB
     manageStock: boolean('manage_stock').default(false),
     stockQuantity: integer('stock_quantity'),
     stockStatus: varchar('stock_status', { length: 20 }).default('instock'), // 'instock', 'outofstock', 'onbackorder'
@@ -214,14 +216,14 @@ export const products = pgTable(
     backordered: boolean('backordered').default(false),
     lowStockAmount: integer('low_stock_amount'),
     soldIndividually: boolean('sold_individually').default(false),
-    weight: decimal('weight', { precision: 8, scale: 2 }),
+    weight: varchar('weight', { length: 20 }), // Changed to varchar to match DB
+    dimensions: jsonb('dimensions'), // Added dimensions as JSONB to match DB
     length: decimal('length', { precision: 8, scale: 2 }),
     width: decimal('width', { precision: 8, scale: 2 }),
     height: decimal('height', { precision: 8, scale: 2 }),
     shippingRequired: boolean('shipping_required').default(true),
     shippingTaxable: boolean('shipping_taxable').default(true),
     shippingClass: varchar('shipping_class', { length: 100 }),
-    shippingClassId: integer('shipping_class_id'),
     reviewsAllowed: boolean('reviews_allowed').default(true),
     averageRating: decimal('average_rating', { precision: 3, scale: 2 }).default('0'),
     ratingCount: integer('rating_count').default(0),
@@ -229,7 +231,7 @@ export const products = pgTable(
     upsellIds: jsonb('upsell_ids'), // Array of product IDs
     crossSellIds: jsonb('cross_sell_ids'), // Array of product IDs
     parentId: integer('parent_id'),
-    purchaseNote: text('purchase_note'),
+    purchaseNote: text('purchase_note').default(''),
     categories: jsonb('categories'), // Array of category objects
     tags: jsonb('tags'), // Array of tag objects
     images: jsonb('images'), // Array of image objects
@@ -277,11 +279,11 @@ export const variations = pgTable(
     regularPrice: decimal('regular_price', { precision: 10, scale: 2 }),
     salePrice: decimal('sale_price', { precision: 10, scale: 2 }),
     onSale: boolean('on_sale').default(false),
-    purchasable: boolean('purchasable').default(true),
     virtual: boolean('virtual').default(false),
     downloadable: boolean('downloadable').default(false),
     downloadLimit: integer('download_limit'),
     downloadExpiry: integer('download_expiry'),
+    downloads: jsonb('downloads'), // Added downloads
     taxStatus: varchar('tax_status', { length: 20 }).default('taxable'),
     taxClass: varchar('tax_class', { length: 50 }),
     manageStock: boolean('manage_stock').default(false),
@@ -290,23 +292,20 @@ export const variations = pgTable(
     backorders: varchar('backorders', { length: 20 }).default('no'),
     backordersAllowed: boolean('backorders_allowed').default(false),
     backordered: boolean('backordered').default(false),
-    weight: decimal('weight', { precision: 8, scale: 2 }),
+    lowStockAmount: integer('low_stock_amount'),
+    weight: varchar('weight', { length: 20 }), // Changed to varchar to match DB
     dimensions: jsonb('dimensions'), // Dimensions object
     length: decimal('length', { precision: 8, scale: 2 }),
     width: decimal('width', { precision: 8, scale: 2 }),
     height: decimal('height', { precision: 8, scale: 2 }),
     shippingClass: varchar('shipping_class', { length: 100 }),
-    shippingClassId: integer('shipping_class_id'),
     image: jsonb('image'), // Image object
     attributes: jsonb('attributes'), // Array of attribute objects
-    menuOrder: integer('menu_order').default(0),
     metaData: jsonb('meta_data'), // Array of meta data objects
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
     dateCreated: timestamp('date_created'),
     dateModified: timestamp('date_modified'),
-    dateOnSaleFrom: timestamp('date_on_sale_from'),
-    dateOnSaleTo: timestamp('date_on_sale_to'),
   },
   (table) => ({
     shopWooIdx: uniqueIndex('variations_shop_woo_idx').on(table.shopId, table.wooId),
