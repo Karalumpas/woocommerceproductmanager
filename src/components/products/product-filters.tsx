@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Filter, X, ChevronDown } from 'lucide-react'
 import { Button } from '../ui/button'
-import { Input } from '../ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Badge } from '../ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
@@ -14,6 +13,7 @@ interface ProductFilters {
   status?: string
   stockStatus?: string
   type?: string
+  inShopId?: number
   sortBy?: 'name' | 'price' | 'dateCreated' | 'dateModified' | 'sku'
   sortOrder?: 'asc' | 'desc'
 }
@@ -23,13 +23,15 @@ interface ProductFiltersProps {
   onFiltersChange: (filters: ProductFilters) => void
   categories: string[]
   brands: string[]
+  shops?: { id: number; name: string }[]
 }
 
-export function ProductFilters({ 
-  filters, 
-  onFiltersChange, 
-  categories = [], 
-  brands = [] 
+export function ProductFilters({
+  filters,
+  onFiltersChange,
+  categories = [],
+  brands = [],
+  shops = []
 }: ProductFiltersProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [localFilters, setLocalFilters] = useState<ProductFilters>(filters)
@@ -38,8 +40,8 @@ export function ProductFilters({
     setLocalFilters(filters)
   }, [filters])
 
-  const handleFilterChange = (key: keyof ProductFilters, value: string | undefined) => {
-    const newFilters = { ...localFilters, [key]: value || undefined }
+  const handleFilterChange = (key: keyof ProductFilters, value: string | number | undefined) => {
+    const newFilters = { ...localFilters, [key]: value !== '' ? value : undefined }
     setLocalFilters(newFilters)
   }
 
@@ -226,6 +228,29 @@ export function ProductFilters({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Exists In Shop Filter */}
+            {shops.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Exists In Shop</label>
+                <Select
+                  value={localFilters.inShopId ? localFilters.inShopId.toString() : 'all'}
+                  onValueChange={(value) => handleFilterChange('inShopId', value === 'all' ? undefined : Number(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All shops" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All shops</SelectItem>
+                    {shops.map((shop) => (
+                      <SelectItem key={shop.id} value={shop.id.toString()}>
+                        {shop.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex gap-2 pt-4">

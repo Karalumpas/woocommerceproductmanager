@@ -37,6 +37,14 @@ interface Product {
   images: any[]
   attributes: any[]
   variations: any[]
+  productShops?: {
+    shopId: number
+    priceOverride?: string | null
+    shop?: {
+      id: number
+      name: string
+    }
+  }[]
   variationsCount?: number
   dateCreated: string
   dateModified: string
@@ -50,6 +58,7 @@ interface ProductFilters {
   status?: string
   stockStatus?: string
   type?: string
+  inShopId?: number
   sortBy?: 'name' | 'price' | 'dateCreated' | 'dateModified' | 'sku'
   sortOrder?: 'asc' | 'desc'
 }
@@ -74,6 +83,10 @@ export default function ProductsPage() {
   const { shops } = useShops()
   const { toast } = useToast()
   const { products, isLoading, error, currentPage, totalPages, total, hasMore, goToPage, loadMore, mutate } = useProducts(searchTerm, 25, filters)
+
+  const filteredProducts = filters.inShopId
+    ? (products || []).filter(p => p.productShops?.some(ps => ps.shopId === filters.inShopId))
+    : products || []
 
   // Auto-select first shop if none selected
   useEffect(() => {
@@ -260,6 +273,7 @@ export default function ProductsPage() {
             onFiltersChange={setFilters}
             categories={categories}
             brands={brands}
+            shops={shops.filter(s => s.id !== selectedShop.id)}
           />
 
           {/* Pagination Mode Toggle */}
@@ -306,7 +320,7 @@ export default function ProductsPage() {
 
       {/* Products List/Grid */}
       <ProductList
-        products={products || []}
+        products={filteredProducts}
         isLoading={isLoading}
         error={error}
         viewMode={viewMode}
