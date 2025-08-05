@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '../../../lib/db'
-import { products, variations, shops } from '../../../lib/db/schema'
+import { masterProducts, productShops } from '../../../lib/db/schema'
 import { eq, ilike, or, and, desc, asc, sql } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
@@ -8,164 +8,85 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const shopId = searchParams.get('shopId')
     const search = searchParams.get('search')
+    const category = searchParams.get('category')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '25')
-    
-    // Filter parameters
-    const category = searchParams.get('category')
-    const brand = searchParams.get('brand')
-    const status = searchParams.get('status')
-    const stockStatus = searchParams.get('stockStatus')
-    const type = searchParams.get('type')
-    const sortBy = searchParams.get('sortBy') || 'dateModified'
-    const sortOrder = searchParams.get('sortOrder') || 'desc'
+    const sortBy = searchParams.get('sortBy') || 'name'
+    const sortOrder = searchParams.get('sortOrder') || 'asc'
 
     if (!shopId) {
       return NextResponse.json({ error: 'Shop ID is required' }, { status: 400 })
     }
 
-    let whereConditions = [eq(products.shopId, parseInt(shopId))]
+    const whereConditions = [eq(productShops.shopId, parseInt(shopId))]
 
-    // Add search filter
     if (search) {
       whereConditions.push(
         or(
-          ilike(products.name, `%${search}%`),
-          ilike(products.sku, `%${search}%`),
-          ilike(products.description, `%${search}%`)
+          ilike(masterProducts.name, `%${search}%`),
+          ilike(masterProducts.sku, `%${search}%`),
+          ilike(masterProducts.description, `%${search}%`)
         )!
       )
     }
 
-    // Add category filter
     if (category) {
-      whereConditions.push(
-        sql`CAST(${products.categories} AS TEXT) LIKE ${'%"name":"' + category + '"%'}`
-      )
+      whereConditions.push(eq(productShops.category, category))
     }
 
-    // Add brand filter (assuming brand is stored in attributes)
-    if (brand) {
-      whereConditions.push(
-        sql`CAST(${products.attributes} AS TEXT) LIKE ${'%"name":"brand"%"option":"' + brand + '"%'}`
-      )
-    }
-
-    // Add status filter
-    if (status) {
-      whereConditions.push(eq(products.status, status))
-    }
-
-    // Add stock status filter
-    if (stockStatus) {
-      whereConditions.push(eq(products.stockStatus, stockStatus))
-    }
-
-    // Add type filter
-    if (type) {
-      whereConditions.push(eq(products.type, type))
-    }
-
-    // Determine sort column and order
     let sortColumn
     switch (sortBy) {
-      case 'name':
-        sortColumn = products.name
-        break
       case 'price':
-        sortColumn = products.regularPrice
+        sortColumn = productShops.price
         break
-      case 'dateCreated':
-        sortColumn = products.dateCreated
-        break
-      case 'sku':
-        sortColumn = products.sku
-        break
+      case 'name':
       default:
-        sortColumn = products.dateModified
+        sortColumn = masterProducts.name
     }
+    const sortFunction = sortOrder === 'desc' ? desc : asc
 
-    const sortFunction = sortOrder === 'asc' ? asc : desc
-
-    // Get total count for pagination
     const totalCountResult = await db
       .select({ count: sql<number>`count(*)` })
-      .from(products)
+      .from(productShops)
+      .innerJoin(
+        masterProducts,
+        eq(productShops.masterProductId, masterProducts.id)
+      )
       .where(and(...whereConditions))
 
-    const totalCount = totalCountResult[0]?.count || 0
+    const totalCount = Number(totalCountResult[0]?.count || 0)
     const totalPages = Math.ceil(totalCount / limit)
-
-    // Add pagination
     const offset = (page - 1) * limit
-    const productsResult = await db
-      .select()
-      .from(products)
+
+    const rows = await db
+      .select({
+        shopData: productShops,
+        master: masterProducts,
+      })
+      .from(productShops)
+      .innerJoin(
+        masterProducts,
+        eq(productShops.masterProductId, masterProducts.id)
+      )
       .where(and(...whereConditions))
       .orderBy(sortFunction(sortColumn))
-      .limit(limit + 1) // Get one extra to check if there are more
+      .limit(limit)
       .offset(offset)
 
-    const hasMore = productsResult.length > limit
-    const productsToReturn = hasMore ? productsResult.slice(0, -1) : productsResult
-
-    // Parse JSONB fields and fetch variations count
-    const parsedProducts = await Promise.all(productsToReturn.map(async (product) => {
-      // Get variations count for variable products
-      let variationsCount = 0
-      if (product.type === 'variable') {
-        try {
-          const variationsResult = await db
-            .select({ count: sql<number>`count(*)` })
-            .from(variations)
-            .where(eq(variations.productId, product.id))
-          
-          variationsCount = Number(variationsResult[0]?.count) || 0
-        } catch (error) {
-          console.error('Error fetching variations count:', error)
-        }
-      }
-
-      // Safe JSON parsing with fallbacks
-      const parseJsonSafely = (jsonString: any, fallback: any = []) => {
-        if (!jsonString) return fallback
-        if (typeof jsonString === 'string') {
-          try {
-            return JSON.parse(jsonString)
-          } catch (error) {
-            console.error('JSON parse error:', error)
-            return fallback
-          }
-        }
-        // If it's already an object, assume it's correct
-        return jsonString
-      }
-
-      return {
-        ...product,
-        images: parseJsonSafely(product.images, []),
-        categories: parseJsonSafely(product.categories, []),
-        attributes: parseJsonSafely(product.attributes, []),
-        variations: Array.from({ length: variationsCount }, (_, i) => ({ id: i + 1 })), // Mock variations for count display
-        variationsCount
-      }
+    const productsResult = rows.map((row) => ({
+      id: row.shopData.id,
+      price: row.shopData.price,
+      category: row.shopData.category,
+      isActive: row.shopData.isActive,
+      masterProductId: row.shopData.masterProductId,
+      shopId: row.shopData.shopId,
+      sku: row.master.sku,
+      name: row.master.name,
+      description: row.master.description,
     }))
 
-    // Debug logging for first product images
-    if (parsedProducts.length > 0) {
-      console.log('First product images debug:', {
-        name: parsedProducts[0].name,
-        imagesRaw: parsedProducts[0].images,
-        imagesType: typeof parsedProducts[0].images,
-        imagesIsArray: Array.isArray(parsedProducts[0].images),
-        imagesLength: parsedProducts[0].images?.length,
-        firstImage: parsedProducts[0].images?.[0]
-      })
-    }
-
     return NextResponse.json({
-      products: parsedProducts,
-      hasMore,
+      products: productsResult,
       page,
       limit,
       total: totalCount,
@@ -183,47 +104,65 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { shopId, ...productData } = body
+    const { shopId, sku, name, description, price, category, isActive } = body
 
     if (!shopId) {
       return NextResponse.json({ error: 'Shop ID is required' }, { status: 400 })
     }
 
-    // Validate required fields
-    if (!productData.name || !productData.sku) {
+    if (!sku || !name) {
       return NextResponse.json(
-        { error: 'Name and SKU are required' },
+        { error: 'SKU and name are required' },
         { status: 400 }
       )
     }
 
-    // Check if product with same SKU already exists
-    const existingProduct = await db
+    let [master] = await db
       .select()
-      .from(products)
-      .where(and(
-        eq(products.shopId, shopId),
-        eq(products.sku, productData.sku)
-      ))
+      .from(masterProducts)
+      .where(eq(masterProducts.sku, sku))
       .limit(1)
 
-    if (existingProduct.length > 0) {
-      return NextResponse.json(
-        { error: 'Product with this SKU already exists' },
-        { status: 400 }
-      )
+    if (!master) {
+      ;[master] = await db
+        .insert(masterProducts)
+        .values({ sku, name, description })
+        .returning()
     }
 
-    const [newProduct] = await db
-      .insert(products)
+    const [shopProduct] = await db
+      .insert(productShops)
       .values({
+        masterProductId: master.id,
         shopId,
-        wooId: 0, // Will be updated when synced with WooCommerce
-        ...productData,
+        price,
+        category,
+        isActive: isActive ?? true,
+      })
+      .onConflictDoUpdate({
+        target: [productShops.masterProductId, productShops.shopId],
+        set: {
+          price,
+          category,
+          isActive: isActive ?? true,
+          updatedAt: new Date(),
+        },
       })
       .returning()
 
-    return NextResponse.json({ product: newProduct })
+    return NextResponse.json({
+      product: {
+        id: shopProduct.id,
+        masterProductId: master.id,
+        shopId: shopProduct.shopId,
+        price: shopProduct.price,
+        category: shopProduct.category,
+        isActive: shopProduct.isActive,
+        sku: master.sku,
+        name: master.name,
+        description: master.description,
+      },
+    })
   } catch (error) {
     console.error('Error creating product:', error)
     return NextResponse.json(
