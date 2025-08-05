@@ -57,15 +57,12 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 worker
 
-# Install production dependencies
+# Install ALL dependencies (including devDependencies for tsx)
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Copy source code
 COPY . .
-
-# Build TypeScript
-RUN npm run build
 
 USER worker
 
