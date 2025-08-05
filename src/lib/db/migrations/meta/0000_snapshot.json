@@ -113,6 +113,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "shipping_class_id": {
+          "name": "shipping_class_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "image": {
           "name": "image",
           "type": "jsonb",
@@ -686,6 +692,12 @@
         "shipping_class": {
           "name": "shipping_class",
           "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "shipping_class_id": {
+          "name": "shipping_class_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
