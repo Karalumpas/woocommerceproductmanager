@@ -135,10 +135,11 @@ export async function authenticateUser(emailOrUsername: string, password: string
     return null
   }
 
-  // Update last login
+  // Update last login and return fresh user data
+  const now = new Date()
   await db
     .update(users)
-    .set({ lastLogin: new Date() })
+    .set({ lastLogin: now, updatedAt: now })
     .where(eq(users.id, user.id))
 
   return {
@@ -147,9 +148,9 @@ export async function authenticateUser(emailOrUsername: string, password: string
     username: user.username,
     isActive: user.isActive,
     autoSync: user.autoSync,
-    lastLogin: user.lastLogin,
+    lastLogin: now,
     createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
+    updatedAt: now,
   }
 }
 
