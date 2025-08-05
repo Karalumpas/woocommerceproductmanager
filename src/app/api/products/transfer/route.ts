@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '../../../../lib/db'
 import { masterProducts, productShops, shops } from '../../../../lib/db/schema'
+
 import { eq } from 'drizzle-orm'
 import { WooCommerceClient } from '../../../../lib/woocommerce'
 
@@ -103,6 +104,30 @@ export async function POST(request: NextRequest) {
           }
         }
 
+        // Save to local database
+        const [newProduct] = await db.insert(products).values({
+          shopId: targetShopId,
+          wooId: wooProduct.id,
+          name: wooProduct.name,
+          slug: wooProduct.slug,
+          type: wooProduct.type,
+          status: wooProduct.status,
+          sku: wooProduct.sku,
+          price: wooProduct.price || null,
+          regularPrice: wooProduct.regular_price || null,
+          salePrice: wooProduct.sale_price || null,
+          stockStatus: wooProduct.stock_status,
+          stockQuantity: wooProduct.stock_quantity || null,
+          description: wooProduct.description,
+          shortDescription: wooProduct.short_description,
+          categories: wooProduct.categories,
+          images: wooProduct.images,
+          attributes: wooProduct.attributes,
+          variations: [],
+          dateCreated: new Date(wooProduct.date_created),
+          dateModified: new Date(wooProduct.date_modified),
+        }).returning()
+
         const sku = wooProduct.sku || `woo-${wooProduct.id}`
 
         let [master] = await db
@@ -141,11 +166,20 @@ export async function POST(request: NextRequest) {
             },
           })
 
+
         results.push({
           success: true,
           productId: product.id,
           wooId: wooProduct.id,
-          name: wooProduct.name
+          name: wooProduct.name,
+        })
+
+        // Log success
+        await db.insert(productSyncLogs).values({
+          productShopId: newProduct.id,
+          action: 'transfer',
+          status: 'success',
+          message: `Transferred product ${product.name}`,
         })
 
       } catch (error) {
@@ -153,7 +187,15 @@ export async function POST(request: NextRequest) {
         errors.push({
           productId: product.id,
           name: product.name,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
+
+        // Log error
+        await db.insert(productSyncLogs).values({
+          productShopId: product.id,
+          action: 'transfer',
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Unknown error',
         })
       }
     }
