@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         username: user.username,
         autoSync: user.autoSync,
+        lastLogin: user.lastLogin,
       },
     })
   } catch (error) {

@@ -77,6 +77,8 @@ export async function GET(request: NextRequest) {
       id: row.shopData.id,
       price: row.shopData.price,
       category: row.shopData.category,
+      stockQuantity: row.shopData.stockQuantity,
+      stockStatus: row.shopData.stockStatus,
       isActive: row.shopData.isActive,
       masterProductId: row.shopData.masterProductId,
       shopId: row.shopData.shopId,
@@ -104,7 +106,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { shopId, sku, name, description, price, category, isActive } = body
+    const { shopId, sku, name, description, price, category, isActive, stockQuantity, stockStatus } = body
 
     if (!shopId) {
       return NextResponse.json({ error: 'Shop ID is required' }, { status: 400 })
@@ -137,6 +139,8 @@ export async function POST(request: NextRequest) {
         shopId,
         price,
         category,
+        stockQuantity,
+        stockStatus: stockStatus || 'instock',
         isActive: isActive ?? true,
       })
       .onConflictDoUpdate({
@@ -144,6 +148,8 @@ export async function POST(request: NextRequest) {
         set: {
           price,
           category,
+          stockQuantity,
+          stockStatus: stockStatus || 'instock',
           isActive: isActive ?? true,
           updatedAt: new Date(),
         },
@@ -157,6 +163,8 @@ export async function POST(request: NextRequest) {
         shopId: shopProduct.shopId,
         price: shopProduct.price,
         category: shopProduct.category,
+        stockQuantity: shopProduct.stockQuantity,
+        stockStatus: shopProduct.stockStatus,
         isActive: shopProduct.isActive,
         sku: master.sku,
         name: master.name,

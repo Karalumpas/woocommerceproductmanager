@@ -83,6 +83,8 @@ export async function POST(request: NextRequest) {
           shopId: shopIdNum,
           price: wooProduct.price || wooProduct.regular_price || null,
           category: wooProduct.categories?.[0]?.name || null,
+          stockQuantity: wooProduct.stock_quantity || null,
+          stockStatus: wooProduct.stock_status,
           isActive: wooProduct.status === 'publish',
           updatedAt: new Date(),
         }

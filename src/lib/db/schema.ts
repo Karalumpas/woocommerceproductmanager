@@ -158,6 +158,8 @@ export const productShops = pgTable(
       .notNull(),
     price: decimal('price', { precision: 10, scale: 2 }),
     category: varchar('category', { length: 255 }),
+    stockQuantity: integer('stock_quantity'),
+    stockStatus: varchar('stock_status', { length: 20 }).default('instock'),
     isActive: boolean('is_active').default(true).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
