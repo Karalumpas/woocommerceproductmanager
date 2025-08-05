@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Switch } from '../ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
+import { Checkbox } from '../ui/checkbox'
 import { 
   Save, 
   X, 
@@ -129,6 +130,7 @@ export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardP
     attributes: [],
     variations: []
   })
+  const [selectedVariants, setSelectedVariants] = useState<number[]>([])
 
   useEffect(() => {
     if (product) {
@@ -150,6 +152,7 @@ export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardP
         attributes: product.attributes || [],
         variations: product.variations || []
       })
+      setSelectedVariants(product.variations?.map((v: any) => v.id) || [])
     }
   }, [product])
 
@@ -237,6 +240,43 @@ export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardP
       ...prev,
       images: prev.images.filter((_: any, i: number) => i !== index)
     }))
+  }
+
+  const toggleVariantSelection = (id: number) => {
+    setSelectedVariants(prev =>
+      prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id]
+    )
+  }
+
+  const handleSaveVariants = async () => {
+    try {
+      const response = await fetch('/api/product-shop-variants', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productShopId: product.id,
+          variationIds: selectedVariants,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save selected variants')
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Variant selection saved',
+      })
+    } catch (error) {
+      console.error('Failed to save variants:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to save variant selection',
+        variant: 'destructive',
+      })
+    }
   }
 
   if (!product) {
@@ -452,7 +492,11 @@ export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardP
                       <Card key={variation.id || index}>
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
-                            <CardTitle className="text-sm">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <Checkbox
+                                checked={selectedVariants.includes(variation.id)}
+                                onChange={() => toggleVariantSelection(variation.id)}
+                              />
                               Variation {index + 1}
                               {variation.sku && ` - ${variation.sku}`}
                             </CardTitle>
@@ -548,6 +592,12 @@ export function ProductCard({ product, isOpen, onClose, onUpdate }: ProductCardP
                       </Card>
                     ))}
                   </div>
+                )}
+                {formData.variations.length > 0 && (
+                  <Button onClick={handleSaveVariants} size="sm">
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Variant Selection
+                  </Button>
                 )}
               </div>
             </TabsContent>
