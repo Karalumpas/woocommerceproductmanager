@@ -105,6 +105,54 @@ export const productCategories = pgTable(
 )
 
 /**
+ * Master products shared across shops
+ */
+export const masterProducts = pgTable(
+  'master_products',
+  {
+    id: serial('id').primaryKey(),
+    sku: varchar('sku', { length: 100 }).notNull().unique(),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: text('description'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    skuIdx: uniqueIndex('master_products_sku_idx').on(table.sku),
+    nameIdx: index('master_products_name_idx').on(table.name),
+  })
+)
+
+/**
+ * Shop specific product data linking master products to shops
+ */
+export const productShops = pgTable(
+  'product_shops',
+  {
+    id: serial('id').primaryKey(),
+    masterProductId: integer('master_product_id')
+      .references(() => masterProducts.id, { onDelete: 'cascade' })
+      .notNull(),
+    shopId: integer('shop_id')
+      .references(() => shops.id, { onDelete: 'cascade' })
+      .notNull(),
+    price: decimal('price', { precision: 10, scale: 2 }),
+    category: varchar('category', { length: 255 }),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    masterShopIdx: uniqueIndex('product_shops_master_shop_idx').on(
+      table.masterProductId,
+      table.shopId
+    ),
+    shopIdx: index('product_shops_shop_idx').on(table.shopId),
+    categoryIdx: index('product_shops_category_idx').on(table.category),
+  })
+)
+
+/**
  * Products table
  */
 export const products = pgTable(
@@ -339,6 +387,7 @@ export const shopsRelations = relations(shops, ({ one, many }) => ({
   categories: many(productCategories),
   variations: many(variations),
   importBatches: many(importBatches),
+  productShops: many(productShops),
 }))
 
 export const productsRelations = relations(products, ({ one, many }) => ({
@@ -347,6 +396,21 @@ export const productsRelations = relations(products, ({ one, many }) => ({
     references: [shops.id],
   }),
   variations: many(variations),
+}))
+
+export const masterProductsRelations = relations(masterProducts, ({ many }) => ({
+  productShops: many(productShops),
+}))
+
+export const productShopsRelations = relations(productShops, ({ one }) => ({
+  masterProduct: one(masterProducts, {
+    fields: [productShops.masterProductId],
+    references: [masterProducts.id],
+  }),
+  shop: one(shops, {
+    fields: [productShops.shopId],
+    references: [shops.id],
+  }),
 }))
 
 export const variationsRelations = relations(variations, ({ one }) => ({
@@ -400,6 +464,10 @@ export type Session = typeof sessions.$inferSelect
 export type NewSession = typeof sessions.$inferInsert
 export type Shop = typeof shops.$inferSelect
 export type NewShop = typeof shops.$inferInsert
+export type MasterProduct = typeof masterProducts.$inferSelect
+export type NewMasterProduct = typeof masterProducts.$inferInsert
+export type ProductShop = typeof productShops.$inferSelect
+export type NewProductShop = typeof productShops.$inferInsert
 export type Product = typeof products.$inferSelect
 export type NewProduct = typeof products.$inferInsert
 export type Variation = typeof variations.$inferSelect

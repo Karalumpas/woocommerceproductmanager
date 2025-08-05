@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '../../../../lib/db'
-import { products, shops, productShopVariants } from '../../../../lib/db/schema'
+import { masterProducts, productShops, shops } from '../../../../lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { WooCommerceClient } from '../../../../lib/woocommerce'
 
 export async function POST(request: NextRequest) {
   try {
-    const { products: productsToTransfer, targetShopId, sourceShopId } = await request.json()
+    const { products: productsToTransfer, targetShopId } = await request.json()
 
     if (!productsToTransfer || !Array.isArray(productsToTransfer) || productsToTransfer.length === 0) {
       return NextResponse.json({ error: 'Products array is required' }, { status: 400 })
@@ -17,7 +17,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get target shop details
-    const targetShop = await db.select().from(shops).where(eq(shops.id, targetShopId)).limit(1)
+    const targetShop = await db
+      .select()
+      .from(shops)
+      .where(eq(shops.id, targetShopId))
+      .limit(1)
     if (targetShop.length === 0) {
       return NextResponse.json({ error: 'Target shop not found' }, { status: 404 })
     }
@@ -99,29 +103,43 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Save to local database
-        await db.insert(products).values({
-          shopId: targetShopId,
-          wooId: wooProduct.id,
-          name: wooProduct.name,
-          slug: wooProduct.slug,
-          type: wooProduct.type,
-          status: wooProduct.status,
-          sku: wooProduct.sku,
-          price: wooProduct.price || null,
-          regularPrice: wooProduct.regular_price || null,
-          salePrice: wooProduct.sale_price || null,
-          stockStatus: wooProduct.stock_status,
-          stockQuantity: wooProduct.stock_quantity || null,
-          description: wooProduct.description,
-          shortDescription: wooProduct.short_description,
-          categories: wooProduct.categories,
-          images: wooProduct.images,
-          attributes: wooProduct.attributes,
-          variations: [],
-          dateCreated: new Date(wooProduct.date_created),
-          dateModified: new Date(wooProduct.date_modified),
-        }).returning()
+        const sku = wooProduct.sku || `woo-${wooProduct.id}`
+
+        let [master] = await db
+          .select()
+          .from(masterProducts)
+          .where(eq(masterProducts.sku, sku))
+          .limit(1)
+
+        if (!master) {
+          ;[master] = await db
+            .insert(masterProducts)
+            .values({
+              sku,
+              name: wooProduct.name,
+              description: wooProduct.description || '',
+            })
+            .returning()
+        }
+
+        await db
+          .insert(productShops)
+          .values({
+            masterProductId: master.id,
+            shopId: targetShopId,
+            price: wooProduct.price || wooProduct.regular_price || null,
+            category: wooProduct.categories?.[0]?.name || null,
+            isActive: wooProduct.status === 'publish',
+          })
+          .onConflictDoUpdate({
+            target: [productShops.masterProductId, productShops.shopId],
+            set: {
+              price: wooProduct.price || wooProduct.regular_price || null,
+              category: wooProduct.categories?.[0]?.name || null,
+              isActive: wooProduct.status === 'publish',
+              updatedAt: new Date(),
+            },
+          })
 
         results.push({
           success: true,
@@ -137,24 +155,6 @@ export async function POST(request: NextRequest) {
           name: product.name,
           error: error instanceof Error ? error.message : 'Unknown error'
         })
-      }
-    }
-
-    // If updating products from same shop, mark them as synced
-    if (sourceShopId && sourceShopId !== targetShopId) {
-      for (const result of results) {
-        if (result.success) {
-          try {
-            await db.update(products)
-              .set({ 
-                dateModified: new Date(),
-                updatedAt: new Date()
-              })
-              .where(eq(products.id, result.productId))
-          } catch (error) {
-            console.error('Failed to update source product:', error)
-          }
-        }
       }
     }
 
