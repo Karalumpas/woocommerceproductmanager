@@ -49,6 +49,7 @@ services:
       - "3010:3010"
     environment:
       - NODE_ENV=production
+      - PORT=3010
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/woocommerce_manager?sslmode=disable
       - REDIS_URL=redis://redis:6379
       - NEXTAUTH_SECRET=your-production-secret-key-here
