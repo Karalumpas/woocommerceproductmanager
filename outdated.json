@@ -1,0 +1,242 @@
+{
+  "@hookform/resolvers": {
+    "wanted": "3.10.0",
+    "latest": "5.2.1",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@radix-ui/react-alert-dialog": {
+    "wanted": "1.1.15",
+    "latest": "1.1.15",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@radix-ui/react-dialog": {
+    "wanted": "1.1.15",
+    "latest": "1.1.15",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@radix-ui/react-dropdown-menu": {
+    "wanted": "2.1.16",
+    "latest": "2.1.16",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@radix-ui/react-label": {
+    "wanted": "2.1.7",
+    "latest": "2.1.7",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@radix-ui/react-popover": {
+    "wanted": "1.1.15",
+    "latest": "1.1.15",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@radix-ui/react-progress": {
+    "wanted": "1.1.7",
+    "latest": "1.1.7",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@radix-ui/react-select": {
+    "wanted": "2.2.6",
+    "latest": "2.2.6",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@radix-ui/react-slot": {
+    "wanted": "1.2.3",
+    "latest": "1.2.3",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@radix-ui/react-switch": {
+    "wanted": "1.2.6",
+    "latest": "1.2.6",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@radix-ui/react-tabs": {
+    "wanted": "1.1.13",
+    "latest": "1.1.13",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@radix-ui/react-toast": {
+    "wanted": "1.2.15",
+    "latest": "1.2.15",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@radix-ui/react-tooltip": {
+    "wanted": "1.2.8",
+    "latest": "1.2.8",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@tailwindcss/forms": {
+    "wanted": "0.5.10",
+    "latest": "0.5.10",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@types/bcryptjs": {
+    "wanted": "2.4.6",
+    "latest": "2.4.6",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@types/node": {
+    "wanted": "20.19.11",
+    "latest": "24.3.0",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@types/papaparse": {
+    "wanted": "5.3.16",
+    "latest": "5.3.16",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@types/pg": {
+    "wanted": "8.15.5",
+    "latest": "8.15.5",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@types/react": {
+    "wanted": "18.3.24",
+    "latest": "19.1.11",
+    "dependent": "woocommerceproductmanager"
+  },
+  "@types/react-dom": {
+    "wanted": "18.3.7",
+    "latest": "19.1.7",
+    "dependent": "woocommerceproductmanager"
+  },
+  "autoprefixer": {
+    "wanted": "10.4.21",
+    "latest": "10.4.21",
+    "dependent": "woocommerceproductmanager"
+  },
+  "bcryptjs": {
+    "wanted": "3.0.2",
+    "latest": "3.0.2",
+    "dependent": "woocommerceproductmanager"
+  },
+  "bullmq": {
+    "wanted": "5.58.1",
+    "latest": "5.58.1",
+    "dependent": "woocommerceproductmanager"
+  },
+  "class-variance-authority": {
+    "wanted": "0.7.1",
+    "latest": "0.7.1",
+    "dependent": "woocommerceproductmanager"
+  },
+  "clsx": {
+    "wanted": "2.1.1",
+    "latest": "2.1.1",
+    "dependent": "woocommerceproductmanager"
+  },
+  "date-fns": {
+    "wanted": "3.6.0",
+    "latest": "4.1.0",
+    "dependent": "woocommerceproductmanager"
+  },
+  "drizzle-kit": {
+    "wanted": "0.23.2",
+    "latest": "0.31.4",
+    "dependent": "woocommerceproductmanager"
+  },
+  "drizzle-orm": {
+    "wanted": "0.32.2",
+    "latest": "0.44.4",
+    "dependent": "woocommerceproductmanager"
+  },
+  "lucide-react": {
+    "wanted": "0.408.0",
+    "latest": "0.541.0",
+    "dependent": "woocommerceproductmanager"
+  },
+  "next": {
+    "wanted": "14.2.5",
+    "latest": "15.5.0",
+    "dependent": "woocommerceproductmanager"
+  },
+  "next-themes": {
+    "wanted": "0.4.6",
+    "latest": "0.4.6",
+    "dependent": "woocommerceproductmanager"
+  },
+  "papaparse": {
+    "wanted": "5.5.3",
+    "latest": "5.5.3",
+    "dependent": "woocommerceproductmanager"
+  },
+  "pg": {
+    "wanted": "8.16.3",
+    "latest": "8.16.3",
+    "dependent": "woocommerceproductmanager"
+  },
+  "postcss": {
+    "wanted": "8.5.6",
+    "latest": "8.5.6",
+    "dependent": "woocommerceproductmanager"
+  },
+  "react": {
+    "wanted": "18.3.1",
+    "latest": "19.1.1",
+    "dependent": "woocommerceproductmanager"
+  },
+  "react-dom": {
+    "wanted": "18.3.1",
+    "latest": "19.1.1",
+    "dependent": "woocommerceproductmanager"
+  },
+  "react-hook-form": {
+    "wanted": "7.62.0",
+    "latest": "7.62.0",
+    "dependent": "woocommerceproductmanager"
+  },
+  "react-icons": {
+    "wanted": "5.5.0",
+    "latest": "5.5.0",
+    "dependent": "woocommerceproductmanager"
+  },
+  "recharts": {
+    "wanted": "2.15.4",
+    "latest": "3.1.2",
+    "dependent": "woocommerceproductmanager"
+  },
+  "redis": {
+    "wanted": "4.7.1",
+    "latest": "5.8.2",
+    "dependent": "woocommerceproductmanager"
+  },
+  "sonner": {
+    "wanted": "1.7.4",
+    "latest": "2.0.7",
+    "dependent": "woocommerceproductmanager"
+  },
+  "swr": {
+    "wanted": "2.3.6",
+    "latest": "2.3.6",
+    "dependent": "woocommerceproductmanager"
+  },
+  "tailwind-merge": {
+    "wanted": "2.6.0",
+    "latest": "3.3.1",
+    "dependent": "woocommerceproductmanager"
+  },
+  "tailwindcss": {
+    "wanted": "3.4.17",
+    "latest": "4.1.12",
+    "dependent": "woocommerceproductmanager"
+  },
+  "tailwindcss-animate": {
+    "wanted": "1.0.7",
+    "latest": "1.0.7",
+    "dependent": "woocommerceproductmanager"
+  },
+  "typescript": {
+    "wanted": "5.9.2",
+    "latest": "5.9.2",
+    "dependent": "woocommerceproductmanager"
+  },
+  "zod": {
+    "wanted": "3.25.76",
+    "latest": "4.1.1",
+    "dependent": "woocommerceproductmanager"
+  },
+  "zustand": {
+    "wanted": "4.5.7",
+    "latest": "5.0.8",
+    "dependent": "woocommerceproductmanager"
+  }
+}
